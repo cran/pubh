@@ -1,4 +1,4 @@
-244caa4ec4fca64dcd0ae795124f98e5 *DESCRIPTION
+ef560970420ad075b3953bcf188e57b9 *DESCRIPTION
 d2f7a299c77e0c84b9804b4a26c4fd68 *NAMESPACE
 a3dee6ceac70a883f309fba587cd0746 *R/data.R
 5b3300e0d371519e6b780255866be371 *R/descriptive_functions.R
@@ -24,11 +24,11 @@ b13449b660a0abe898d140b2909800f9 *data/Tuzson.rda
 3e4eb2c88f49633c4b26e445d9be62be *data/Vanderpump.rda
 e02b00d5a9cd57b09769767fbdd36742 *inst/doc/introduction.R
 31e6c84c7f5ad738cba53e37144294d0 *inst/doc/introduction.Rmd
-3398be791b9da9f2d8e47831a1a990b6 *inst/doc/introduction.html
+cb087d47d8c6e8d8f61bdbdc330c40a6 *inst/doc/introduction.html
 8a39a531cf26aea0722542c2c8933cc6 *inst/doc/regression.R
 08f1b20bc18bbb3deb23152e2a6bfc70 *inst/doc/regression.Rmd
-40f7c95e45fd11deef6effa8086ff6c6 *inst/doc/regression.html
-f69b5590aa867e34a0e0619346156fcc *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
+13062ff4ac35e413d5b90455b76688f1 *inst/doc/regression.html
+e716ea08cab248756214d7f80c2a8496 *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
 4d5af97e7d588d23664a305945b3e606 *inst/rmarkdown/templates/report/template.yaml
 b00d5205483a819f79ed70e2248615d5 *man/Bernard.Rd
 f98cfba8f17dbe4ad8013977c6d0eedb *man/Brenner.Rd
