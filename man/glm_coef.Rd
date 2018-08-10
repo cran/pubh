@@ -4,7 +4,8 @@
 \alias{glm_coef}
 \title{Table of coefficients from generalised linear models.}
 \usage{
-glm_coef(model, digits = 2, alpha = 0.05, labels = NULL, se.rob = TRUE)
+glm_coef(model, digits = 2, alpha = 0.05, labels = NULL, se.rob = TRUE,
+  type = "cond")
 }
 \arguments{
 \item{model}{A model from any of the classes listed in the details section.}
@@ -16,9 +17,11 @@ glm_coef(model, digits = 2, alpha = 0.05, labels = NULL, se.rob = TRUE)
 \item{labels}{An optional character vector with the names of the coefficients (including intercept).}
 
 \item{se.rob}{Logical, should robust errors be used to calculate confidence intervals? (default = TRUE).}
+
+\item{type}{Character, either "cond" (condensed) or "ext" (extended). See details.}
 }
 \value{
-A data frame with estimates, standard errors, confidence intervals and p-values from \code{glm} objects.
+A data frame with estimates, confidence intervals and p-values from \code{glm} objects.
 }
 \description{
 \code{glm_coef} displays estimates with confidence intervals and p-values from generalised linear models (see Details).
@@ -33,6 +36,11 @@ Poisson or survival analysis, coefficient estimates and corresponding confidence
 automatically exponentiated (back-transformed).
 
 By default, \code{glm_coef} uses robust standard errors for calculating confidence intervals.
+
+\code{glm_coef} can display two different data frames depending on the option of \code{type},
+for type \code{type = "cond"} (the default), \code{glm_coef} displays the standard table of coefficients
+with confidence intervals and p-values; for \code{type = "ext"}, \code{glm_coef} displays each number
+in a different column and includes standard errors.
 
 Please read the Vignette on Regression for more details.
 }
@@ -49,6 +57,7 @@ glm_coef(model_norm, labels=c("Constant", "Smoker vs Non-smoker", "Non-white vs 
 data(diet, package = "Epi")
 model_binom <- glm(chd ~ fibre, data = diet, family = binomial)
 glm_coef(model_binom, labels = c("Constant", "Fibre intake (g/day)"))
+glm_coef(model_binom, labels = c("Constant", "Fibre intake (g/day)"), type = "ext")
 
 ## Poisson regression.
 library(MASS)
@@ -67,17 +76,6 @@ unadj <- glm_coef(model_negbin, labels=c("Constant",
                                    "F2/Primary",
                                    "F3/Primary"))
 unadj # Not-adjusted for multiple comparisons
-
-library(multcomp)
-model_glht <- glht(model_negbin, linfct  = mcp(Age = "Tukey"))
-age_glht <- xymultiple(model_glht, Exp = TRUE, plot = FALSE)
-age_glht
-
-final <- unadj
-final[, 5] <- as.character(final[, 5])
-age_glht[, 5] <- as.character(age_glht[, 5])
-final[4:6, 3:5] <- age_glht[1:3, 3:5]
-final # Final table, with CIs and p-values adjusted for multiple comparisons (Westfall).
 
 ## For more examples, please read the Vignette on Regression.
 }

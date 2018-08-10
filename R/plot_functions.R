@@ -172,11 +172,13 @@ box_plot <- function(formula, data, box.fill = "gray70", box.ratio = 0.7, aspect
 #' data(kfm, package = "ISwR")
 #' qq_plot(~ dl.milk, data = kfm, ylab = "Breast-milk intake (dl/day)")
 #' qq_plot(~ dl.milk|sex, data = kfm, ylab = "Breast-milk intake (dl/day)", aspect = 1)
-qq_plot <- function(formula, data = NULL, pch = 20, col = 1, aspect = 3/4, ...)
+qq_plot <- function (formula, data = NULL, pch = 20, col = 1, aspect = 3/4, ...)
 {
-  x <- NULL; rm(x)
+  x <- NULL
+  rm(x)
   qqmath(formula, data = data, aspect = aspect, pch = pch, col = col, ...) +
-    layer(panel.qqmathline(x, col = 2, lwd = 1.5))
+    layer(panel.qqmathline(x, col = trellis.par.get("plot.line")$col, lwd = 1.5)) +
+    layer(panel.qqmathci(x, alpha = 0.1, col = trellis.par.get("plot.line")$col))
 }
 
 #' Histogram with Normal density curve.
@@ -320,9 +322,9 @@ coef_plot <- function (model, labels = NULL, Exp = FALSE, CI = 0.95, pch = 20, c
   alpha <- 1 - CI
   if (Exp == FALSE) {
     if (is.null(labels)) {
-      cis <- glm_coef(model)[- 1, c(1, 3:4)]
+      cis <- glm_coef(model, type = "ext")[- 1, c(1, 3:4)]
     } else {
-      cis <- glm_coef(model, labels = c("", labels))[- 1, c(1, 3:4)]
+      cis <- glm_coef(model, labels = c("", labels), type = "ext")[- 1, c(1, 3:4)]
     }
     param <- row.names(cis)
     cis2 <- data.frame(Parameter = param, Estimate = cis[, 1],
@@ -334,9 +336,9 @@ coef_plot <- function (model, labels = NULL, Exp = FALSE, CI = 0.95, pch = 20, c
       layer(panel.abline(h = 0, lty = 2, col = 1, lwd = 0.5))
   } else {
     if (is.null(labels)) {
-      cis <- glm_coef(model)[- 1, c(2, 4:5)]
+      cis <- glm_coef(model, type = "ext")[- 1, c(2, 4:5)]
     } else {
-      cis <- glm_coef(model, labels = c("", labels))[- 1, c(2, 4:5)]
+      cis <- glm_coef(model, labels = c("", labels), type = "ext")[- 1, c(2, 4:5)]
     }
     param <- row.names(cis)
     cis2 <- data.frame(Parameter = param, Estimate = cis[, 1],
