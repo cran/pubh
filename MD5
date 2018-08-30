@@ -1,4 +1,4 @@
-fa4801f55faa55dd076c49c194d3f5b8 *DESCRIPTION
+ef3dc677727ba12127774a5cb8c36803 *DESCRIPTION
 3eda853ad5a9ebe8019954a3ca7a221c *NAMESPACE
 c646a1b8c23d62402d3c5f8adf95fb27 *R/data.R
 5b3300e0d371519e6b780255866be371 *R/descriptive_functions.R
@@ -22,13 +22,13 @@ eeb7a4dd94ddfda6883328ddc9d06b78 *data/Roberts.rda
 353f6a3542520a743a10799dc2d5d73b *data/Thall.rda
 b13449b660a0abe898d140b2909800f9 *data/Tuzson.rda
 3e4eb2c88f49633c4b26e445d9be62be *data/Vanderpump.rda
-2b7d188423ecfc259244acf201e13b3e *inst/doc/introduction.R
-9704b8ad39d7896df52074154bde1c5f *inst/doc/introduction.Rmd
-aeb6621c66f4785c828240ca2213c1b5 *inst/doc/introduction.html
-904f16e0da9998e88b73d7470bbb895a *inst/doc/regression.R
-3166a628b0dcfd107a3789adf38376c0 *inst/doc/regression.Rmd
-decac028c23e67e56f8cd73657f570d7 *inst/doc/regression.html
-041c701aed4ac0de0c0c6a5377487fb6 *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
+c768e0fc5aecb6c9052aab84c03a5b8d *inst/doc/introduction.R
+466c2440a4b80f436f2f9ab28101483e *inst/doc/introduction.Rmd
+0358b9b252f57e590f7aa119d385aa1a *inst/doc/introduction.html
+49f5bcd24254e22dbf0f24f91010b8e7 *inst/doc/regression.R
+4aaeddd6e532a8830bbb30eabecfe963 *inst/doc/regression.Rmd
+f0bcb055a1755170f18ca293b8651a2e *inst/doc/regression.html
+c095c3880eada8a2b235a27a32890a30 *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
 4d5af97e7d588d23664a305945b3e606 *inst/rmarkdown/templates/report/template.yaml
 b00d5205483a819f79ed70e2248615d5 *man/Bernard.Rd
 f98cfba8f17dbe4ad8013977c6d0eedb *man/Brenner.Rd
@@ -60,7 +60,7 @@ b3418d5dc82f271d326c3fef31bad2dd *man/contingency.Rd
 228553d646bc7124b95bc7151d061b47 *man/freq_cont.Rd
 f616b802d201fdf934543a812ba9ffec *man/gen_bst_df.Rd
 abb610c247caec95e455eae3f7058c9d *man/geo_mean.Rd
-f31f06bf6c04867725815920b9694bf8 *man/glm_coef.Rd
+ae76564875ef82d516d8163e3aa5197b *man/glm_coef.Rd
 3ddb8cb17b133d0190e2be43f94e7709 *man/harm_mean.Rd
 7c96851ef501cf7eaf8ee793ba5d7755 *man/hist_norm.Rd
 bb76d20cf7907bdabefbddc7c40d3f73 *man/inv_logit.Rd
@@ -86,5 +86,5 @@ b7c8291ad995a78cc2af3bd94d5f9413 *man/ss_jk.Rd
 17ce861a7ebeea8d9cc34e4b52835b06 *man/stats_quotes.Rd
 156fd1649dbe5fe31c0112905c60c131 *man/strip_error.Rd
 f1fc76a90f821481459b1c6cf6207078 *man/xymultiple.Rd
-9704b8ad39d7896df52074154bde1c5f *vignettes/introduction.Rmd
-3166a628b0dcfd107a3789adf38376c0 *vignettes/regression.Rmd
+466c2440a4b80f436f2f9ab28101483e *vignettes/introduction.Rmd
+4aaeddd6e532a8830bbb30eabecfe963 *vignettes/regression.Rmd

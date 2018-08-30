@@ -1,6 +1,6 @@
 Package: pubh
 Title: A Toolbox for Public Health and Epidemiology
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: c(
     person("Josie", "Athens", email = "josie.athens@otago.ac.nz", role = c("aut", "cre")),
     person("Deepayan", "Sarkar", email = "deepayan.sarkar@r-project.org", role = "ctb"),
@@ -24,19 +24,19 @@ Description: A toolbox for making R functions and capabilities more
     or Public Health. Please note that use of the 
     provided data sets is for educational purposes only.
 Depends: R (>= 3.5.0), lattice, latticeExtra, tactile, stats
-Imports: car, bookdown, effects, Epi, epiR, epitools, kableExtra,
-        knitr, lmtest, lme4, MASS, multcomp, nlme, nnet, ordinal,
-        papeR, rmdformats, sandwich, survival
+Imports: car, bookdown, desctable, effects, Epi, epiR, epitools, knitr,
+        latex2exp, lmtest, lme4, MASS, multcomp, nlme, nnet, ordinal,
+        pander, papeR, sandwich, survival
 Suggests: epibasix, epiDisplay, haven, ISwR, psych, rmarkdown
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 VignetteBuilder: knitr
 URL: https://github.com/josie-athens/pubh
 BugReports: https://github.com/josie-athens/pubh/issues
 NeedsCompilation: no
-Packaged: 2018-08-09 22:02:55 UTC; josie
+Packaged: 2018-08-29 23:35:30 UTC; josie
 Author: Josie Athens [aut, cre],
   Deepayan Sarkar [ctb],
   Mark Stevenson [ctb],
@@ -50,4 +50,4 @@ Author: Josie Athens [aut, cre],
   Johan Larsson [ctb],
   R-Core [ctb]
 Repository: CRAN
-Date/Publication: 2018-08-10 04:30:03 UTC
+Date/Publication: 2018-08-30 04:30:02 UTC
