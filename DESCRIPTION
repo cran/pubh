@@ -1,6 +1,6 @@
 Package: pubh
 Title: A Toolbox for Public Health and Epidemiology
-Version: 0.4.2
+Version: 0.4.3
 Authors@R: c(
     person("Josie", "Athens", email = "josie.athens@otago.ac.nz", role = c("aut", "cre")),
     person("Deepayan", "Sarkar", email = "deepayan.sarkar@r-project.org", role = "ctb"),
@@ -36,7 +36,7 @@ VignetteBuilder: knitr
 URL: https://github.com/josie-athens/pubh
 BugReports: https://github.com/josie-athens/pubh/issues
 NeedsCompilation: no
-Packaged: 2018-08-29 23:35:30 UTC; josie
+Packaged: 2018-10-02 23:34:24 UTC; josie
 Author: Josie Athens [aut, cre],
   Deepayan Sarkar [ctb],
   Mark Stevenson [ctb],
@@ -50,4 +50,4 @@ Author: Josie Athens [aut, cre],
   Johan Larsson [ctb],
   R-Core [ctb]
 Repository: CRAN
-Date/Publication: 2018-08-30 04:30:02 UTC
+Date/Publication: 2018-11-02 18:10:06 UTC

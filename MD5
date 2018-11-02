@@ -1,4 +1,4 @@
-ef3dc677727ba12127774a5cb8c36803 *DESCRIPTION
+2f73f1fad7309bdb2b146534c0c89c09 *DESCRIPTION
 3eda853ad5a9ebe8019954a3ca7a221c *NAMESPACE
 c646a1b8c23d62402d3c5f8adf95fb27 *R/data.R
 5b3300e0d371519e6b780255866be371 *R/descriptive_functions.R
@@ -22,13 +22,13 @@ eeb7a4dd94ddfda6883328ddc9d06b78 *data/Roberts.rda
 353f6a3542520a743a10799dc2d5d73b *data/Thall.rda
 b13449b660a0abe898d140b2909800f9 *data/Tuzson.rda
 3e4eb2c88f49633c4b26e445d9be62be *data/Vanderpump.rda
-c768e0fc5aecb6c9052aab84c03a5b8d *inst/doc/introduction.R
-466c2440a4b80f436f2f9ab28101483e *inst/doc/introduction.Rmd
-0358b9b252f57e590f7aa119d385aa1a *inst/doc/introduction.html
-49f5bcd24254e22dbf0f24f91010b8e7 *inst/doc/regression.R
-4aaeddd6e532a8830bbb30eabecfe963 *inst/doc/regression.Rmd
-f0bcb055a1755170f18ca293b8651a2e *inst/doc/regression.html
-c095c3880eada8a2b235a27a32890a30 *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
+33f5f6780961a1d82ac8a446ecd4ce39 *inst/doc/introduction.R
+ddcdc7495d6b44cfc763a6f284f81845 *inst/doc/introduction.Rmd
+2bfe2be2b383ee0cbb6fac4bb0e1606c *inst/doc/introduction.html
+9c62a7ea7be9a68d0972f67014fbe0c4 *inst/doc/regression.R
+cb7d359799ccef65a70df5c6f4ab93a2 *inst/doc/regression.Rmd
+90e2c391474b3d744714e3b79364b31e *inst/doc/regression.html
+13e97c95338c5e5ac4c9830e73a0df78 *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
 4d5af97e7d588d23664a305945b3e606 *inst/rmarkdown/templates/report/template.yaml
 b00d5205483a819f79ed70e2248615d5 *man/Bernard.Rd
 f98cfba8f17dbe4ad8013977c6d0eedb *man/Brenner.Rd
@@ -86,5 +86,5 @@ b7c8291ad995a78cc2af3bd94d5f9413 *man/ss_jk.Rd
 17ce861a7ebeea8d9cc34e4b52835b06 *man/stats_quotes.Rd
 156fd1649dbe5fe31c0112905c60c131 *man/strip_error.Rd
 f1fc76a90f821481459b1c6cf6207078 *man/xymultiple.Rd
-466c2440a4b80f436f2f9ab28101483e *vignettes/introduction.Rmd
-4aaeddd6e532a8830bbb30eabecfe963 *vignettes/regression.Rmd
+ddcdc7495d6b44cfc763a6f284f81845 *vignettes/introduction.Rmd
+cb7d359799ccef65a70df5c6f4ab93a2 *vignettes/regression.Rmd
