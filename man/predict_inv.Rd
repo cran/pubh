@@ -25,14 +25,20 @@ Riboflavin <- seq(0, 80, 10)
 OD <- 0.0125 * Riboflavin + rnorm(9, 0.6, 0.03)
 titration <- data.frame(Riboflavin, OD)
 
-xyplot(OD ~ Riboflavin, data = titration, pch = 16, col = 1, aspect = 3/4) +
-  layer(panel.smoother(lwd = 1.5, col = 2, method = "lm", ...))
+require(sjlabelled)
+titration <- titration \%>\%
+  var_labels(
+    Riboflavin = "Riboflavin (nmol/ml)",
+    OD = "Optical density"
+  )
+
+titration \%>\%
+  gf_point(OD ~ Riboflavin) \%>\%
+  gf_smooth(col = 'indianred3', se = TRUE, lwd = 0.5, method = 'loess') \%>\%
+  axis_labs()
 
 ## Model with intercept different from zero:
 model <- lm(OD ~ Riboflavin, data = titration)
 glm_coef(model)
 predict_inv(model, 1.15)
-}
-\author{
-Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
 }

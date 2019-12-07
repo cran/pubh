@@ -4,7 +4,7 @@
 \name{Oncho}
 \alias{Oncho}
 \title{Onchocerciasis in Sierra Leone.}
-\format{A data frame with 1302 rows and 7 variables:
+\format{A labelled data frame with 1302 rows and 7 variables:
 \describe{
 \item{id}{Subject ID.}
 \item{mf}{Infected with Onchocerciasis volvulus, factor with levels "Not-infected" and "Infected".}
@@ -28,6 +28,9 @@ Study of onchocerciasis ("river blindness") in Sierra Leone, in which subjects w
 to whether they lived in villages in savannah or rainforest area.
 }
 \examples{
-odds_trend(mf ~ agegrp, data = Oncho)
+data(Oncho)
+
+odds_trend(mf ~ agegrp, data = Oncho)$df
+odds_trend(mf ~ agegrp, data = Oncho)$fig
 }
 \keyword{datasets}

@@ -42,21 +42,44 @@ expand_df <- function(aggregate.data, index.var = "Freq", retain.freq = FALSE)
 #' \code{mhor} computes odds ratios by levels of the stratum variable as well as the Mantel-Haenszel
 #' pooled odds ratio. The test for effect modification (test for interaction) is also displayed.
 #'
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
 #' @seealso \link{mh}
-#' @param formula A formula expressed as outcome ~ stratum/exposure.
+#' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
+#' @param formula A formula with shape: outcome ~ stratum/exposure.
 #' @param data A data frame containing the variables used in \code{formula}.
 #' @return Odds ratios with 95% confidence intervals on the effect of \code{exposure} on
 #'   \code{outcome} by levels of \code{stratum}. The Mantel-Haenszel pooled OR and the test
 #'   for effect modification is also reported.
 #' @examples
 #' data(oswego, package = "epitools")
-#' oswego$ill <- factor(oswego$ill)
-#' oswego$sex <- factor(oswego$sex)
-#' oswego$chocolate.ice.cream <- factor(oswego$chocolate.ice.cream)
-#' mhor(ill ~ sex/chocolate.ice.cream, data = oswego)
-mhor <- function(formula, data)
+#' require(dplyr)
+#' require(sjlabelled)
+#' oswego <- oswego %>%
+#'   mutate(
+#'     ill = factor(ill, labels = c("No", "Yes")),
+#'     sex = factor(sex, labels = c("Female", "Male")),
+#'     chocolate.ice.cream = factor(chocolate.ice.cream, labels = c("No", "Yes"))
+#'   ) %>%
+#'   var_labels(
+#'     ill = "Developed illness",
+#'     sex = "Sex",
+#'     chocolate.ice.cream = "Consumed chocolate ice cream"
+#'   )
+#'
+#' oswego %>%
+#'   cross_tab(ill ~ sex|chocolate.ice.cream)
+#'
+#' oswego %>%
+#'   mhor(ill ~ sex/chocolate.ice.cream)
+mhor <- function(object = NULL, formula = NULL, data = NULL)
 {
+  if (inherits(object, "formula")) {
+    formula <- object
+    object <- NULL
+  }
+  if (inherits(object, "data.frame")) {
+    data <- object
+    object <- NULL
+  }
   vars <- all.vars(formula)
   outcome <- vars[1]
   exposure <- vars[3]
@@ -95,7 +118,6 @@ mhor <- function(formula, data)
 #' \code{prop_or} is a simple function to calculate a proportion, from another proportion and the odds
 #' ratio between them.
 #'
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago.
 #' @param p2 The value of a proportion in the unexposed group (p2).
 #' @param or The odds ratio of p1/p2.
 #' @return \code{p1}, the proportion in the exposed group (p1).
@@ -123,13 +145,13 @@ prop_or <- function(p2, or)
 #' significant or not.
 #'
 #' @details \code{odds_trend} is a wrap function that calls \link{oddsratio} from package \code{epitools}.
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
-#' @author Tomas Aragon, University of Berkeley, USA.
-#' @seealso \link{oddsratio}
-#' @param formula A formula of the form outcome ~ exposure.
+#' @seealso \code{epitools::oddsratio}
+#' @param formula A formula with shape: outcome ~ exposure.
 #' @param data A data frame where the variables in the \code{formula} can be found.
+#' @param angle Angle of for the x labels (default = 45).
+#' @param hjust Horizontal adjustment for x labels (default = 1).
 #' @param ... Passes optional arguments to \link{oddsratio}.
-#' @return Displays odds ratio, analysis of trend and plot.
+#' @return A list with components \code{df} a data frame with the results and \code{fig} corresponding plot.
 #' @examples
 #' ## A cross-sectional study looked at the association between obesity and a biopsy resulting
 #' ## from mammography screening.
@@ -142,44 +164,39 @@ prop_or <- function(p2, or)
 #' breast
 #'
 #' breast <- expand_df(breast)
-#' odds_trend(Biopsy ~ Weight, data = breast)
-odds_trend <- function (formula, data, ...)
+#' require(sjlabelled)
+#'
+#' breast = var_labels(breast,
+#'   Weight = 'Weight group'
+#'   )
+#'
+#' odds_trend(Biopsy ~ Weight, data = breast)$df
+#'
+#' odds_trend(Biopsy ~ Weight, data = breast)$fig
+odds_trend <- function(formula, data, angle = 45,
+                       hjust = 1, ...)
 {
   vars <- all.vars(formula)
-  outcome <- vars[1]
-  exposure <- vars[2]
-  orwald <- epitools::oddsratio(data[[exposure]], data[[outcome]], ...)
+  x <- vars[2]
+  outcome <- data[[vars[1]]]
+  exposure <- data[[vars[2]]]
+  orwald <- epitools::oddsratio(exposure, outcome, ...)
   n <- nrow(orwald$measure)
-  or.df <- data.frame(x = 1:n, round(orwald$measure, 2), round_pval(orwald$p.value[, 3]), round_pval(orwald$p.value[, 2]))
+  or.df <- data.frame(x = 1:n, round(orwald$measure, 2),
+                      round_pval(orwald$p.value[, 3]),
+                      round_pval(orwald$p.value[, 2]))
   names(or.df)[5:6] <- c("chi.square", "fisher.exact")
   names(or.df)[1:2] <- c("Exposure", "OR")
   nam <- row.names(or.df)
   or.df$Exposure <- factor(or.df$Exposure, labels = nam)
   or.df <- data.frame(or.df, row.names = NULL)
-
-  # Plot:
-  myplot <- xyplot(cbind(OR, lower, upper) ~ Exposure, data = or.df, type = "b", pch=20,
-                   col = 1, panel = panel.errbars, ylab = "Odds Ratio", xlab = NULL,
-                   scales = list(x = list(rot = 45)), ...)
-
-  # Odds trend:
-  ortab <- table(data[[exposure]], data[[outcome]])
-  ortab2 <- addmargins(ortab, 2)
-  ptt <- prop.trend.test(ortab2[, 2], ortab2[, 3])
-
-  # Output:
-  cat("Odds Ratios with 95% CIs and p-values", "\n","\n")
-  print(or.df, row.names = FALSE)
-  cat("\n","\n")
-  if(ptt$p.value < 0.001)
-  {cat("Chi-squared Test for Trend in Proportions =", round(ptt$statistic, 3),
-      "\n", ptt$parameter, "d.f.,", "p", round_pval(ptt$p.value), "\n")
-  cat("\n")
-  myplot} else
-  {cat("Chi-squared Test for Trend in Proportions =", round(ptt$statistic,3),
-       "\n", ptt$parameter, "d.f.,", "p = ", round(ptt$p.value, 4), "\n")
-    cat("\n")
-    myplot}
+  df <- or.df
+  fit = glm(formula, data = data, binomial)
+  fig = sjPlot::plot_model(fit, type = 'pred', terms = x,
+                           title = '', dot.size = 1) %>%
+    gf_theme(axis.text.x = ggplot2::element_text(angle = angle, hjust = hjust))
+  res <- list(df = df, fig = fig)
+  res
 }
 
 #' Diagnostic tests from variables.
@@ -187,12 +204,12 @@ odds_trend <- function (formula, data, ...)
 #' \code{diag_test} is a wrap function that calls \link{epi.tests} from package \code{epiR}.
 #' It computes sensitivity, specificity and other statistics related with screening tests.
 #'
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
-#' @author Mark Stevenson, Faculty of Veterinary and Agricultural Sciences, The University of Melbourne, Australia.
-#' @param formula A formula of the form outcome ~ predictor (see details).
+#' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
+#' @param formula A formula with shape: outcome ~ predictor (see details).
 #' @param data A data frame where the variables in the \code{formula} can be found.
 #' @param ... Further arguments passed to \link{epi.tests}.
 #' @details For the \code{formula}, the outcome is the gold standard and the explanatory variable is the new (screening) test. See examples.
+#' @seealso \code{epiR::epi.tests}
 #' @examples
 #' ## We compare the use of lung’s X-rays on the screening of TB against the gold standard test.
 #' Freq <- c(1739, 8, 51, 22)
@@ -200,9 +217,19 @@ odds_trend <- function (formula, data, ...)
 #' Xray <- gl(2, 2, labels=c("Negative", "Positive"))
 #' tb <- data.frame(Freq, BCG, Xray)
 #' tb <- expand_df(tb)
-#' diag_test(BCG ~ Xray, data=tb)
-diag_test <- function(formula, data, ...)
+#'
+#' tb %>%
+#'   diag_test(BCG ~ Xray)
+diag_test <- function(object = NULL, formula = NULL, data = NULL, ...)
 {
+  if (inherits(object, "formula")) {
+    formula <- object
+    object <- NULL
+  }
+  if (inherits(object, "data.frame")) {
+    data <- object
+    object <- NULL
+  }
   vars <- all.vars(formula)
   outcome <- vars[1]
   exposure <- vars[2]
@@ -218,12 +245,11 @@ diag_test <- function(formula, data, ...)
 #'
 #' @details \code{diag.test} uses direct input variables.
 #'
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
-#' @author Mark Stevenson, Faculty of Veterinary and Agricultural Sciences, The University of Melbourne, Australia.
 #' @param aa Number of cases where both screening test and the gold standard are positive.
 #' @param bb Number of cases where screening test is positive but gold standard is negative.
 #' @param cc Number of cases where screening test is negative but gold standard is positive.
 #' @param dd Number of cases where both screening test and the gold standard are negative.
+#' @seealso \code{epiR::epi.tests}
 #' @examples
 #' ## We compare the use of lung’s X-rays on the screening of TB against the gold standard test.
 #' diag_test2(22, 51, 8, 1739)
@@ -239,21 +265,18 @@ diag_test2 <- function(aa, bb, cc, dd)
 #'
 #' \code{contingency} is a wrap that calls \link{epi.2by2} from package \code{epiR}.
 #'
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
-#' @author Mark Stevenson, Faculty of Veterinary and Agricultural Sciences, The University of Melbourne, Australia.
-#' @author Cord Heuer, EpiCentre, IVABS, Massey University, Palmerston North, New Zealand.
-#' @author Jim Robison-Cox , Department of Math Sciences, Montana State University, Montana, USA.
-#' @author Kazuki Yoshida, Brigham and Women's Hospital, Boston Massachusetts, USA.
-#' @author Simon Firestone, Faculty of Veterinary and Agricultural Sciences, The University of Melbourne, Australia.
-#' @param formula A formula of the form outcome ~ exposure.
+#' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
+#' @param formula A formula with shape: outcome ~ exposure.
 #' @param data A data frame where the variables in the \code{formula} can be found.
 #' @param method A character string with options: "cohort.count", "cohort.time", "case.control", or "cross.sectional".
-#' @param ... Further arguments passed to \link{epi.2by2}.
+#' @param ... Further arguments passed to \code{\link{epi.2by2}}.
 #' @details \code{contingency} uses a formula as a way to input variables.
 #' @details \code{contingency} displays the contingency table as a way for the user to check that the reference levels
 #' in the categorical variables (outcome and exposure) are correct. Then displays measures of association
-#' (table from \link{epi.2by2}). It also reports either chi-squared test or exact Fisher's test;
+#' (table from \code{\link{epi.2by2}}). It also reports either chi-squared
+#' test or exact Fisher's test;
 #' \code{contingency} checks which one of the tests two is appropriate.
+#' @seealso \code{epiR::epi.2by2}
 #' @examples
 #' ## A case-control study on the effect of alcohol on oesophageal cancer.
 #' Freq <- c(386, 29, 389, 171)
@@ -262,8 +285,24 @@ diag_test2 <- function(aa, bb, cc, dd)
 #' cancer <- data.frame(Freq, status, alcohol)
 #' cancer <- expand_df(cancer)
 #' contingency(status ~ alcohol, data = cancer, method = "case.control")
-contingency <- function(formula, data, method="cohort.count", ...)
+#'
+#' data(Oncho)
+#'
+#' Oncho %>%
+#'   cross_tab(mf ~ area)
+#'
+#' Oncho %>%
+#'   contingency(mf ~ area)
+contingency <- function(object = NULL, formula = NULL, data = NULL, method="cohort.count", ...)
 {
+  if (inherits(object, "formula")) {
+    formula <- object
+    object <- NULL
+  }
+  if (inherits(object, "data.frame")) {
+    data <- object
+    object <- NULL
+  }
   vars <- all.vars(formula)
   outcome <- vars[1]
   exposure <- vars[2]
@@ -282,17 +321,12 @@ contingency <- function(formula, data, method="cohort.count", ...)
 #'
 #' \code{contingency2} is a wrap that calls \link{epi.2by2} from package \code{epiR}.
 #'
-#' @author Josie Athens, Department of Preventive and Social Medicine, University of Otago, New Zealand.
-#' @author Mark Stevenson, Faculty of Veterinary and Agricultural Sciences, The University of Melbourne, Australia.
-#' @author Cord Heuer, EpiCentre, IVABS, Massey University, Palmerston North, New Zealand.
-#' @author Jim Robison-Cox , Department of Math Sciences, Montana State University, Montana, USA.
-#' @author Kazuki Yoshida, Brigham and Women's Hospital, Boston Massachusetts, USA.
-#' @author Simon Firestone, Faculty of Veterinary and Agricultural Sciences, The University of Melbourne, Australia.
 #' @param aa Number of cases where both exposure and outcome are present.
 #' @param bb Number of cases where exposure is present but outcome is absent.
 #' @param cc Number of cases where exposure is absent but outcome is present.
 #' @param dd Number of cases where both exposure and outcome are absent.
 #' @param ... Further arguments passed to \link{epi.2by2}.
+#' @seealso \code{epiR::epi.2by2}
 #' @examples
 #' ## A case-control study on the effect of alcohol on oesophageal cancer.
 #' Freq <- c(386, 29, 389, 171)

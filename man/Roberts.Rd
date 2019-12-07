@@ -4,7 +4,7 @@
 \name{Roberts}
 \alias{Roberts}
 \title{Extracorporeal membrane oxygenation in neonates.}
-\format{A data frame with 185 rows and 2 variables:
+\format{A labelled data frame with 185 rows and 2 variables:
 \describe{
 \item{EMO}{Extracorporeal membrane oxygenation treatment, factor with levels "No" and "Yes".}
 \item{Survived}{One year survival, factor with levels "No" and "Yes".}
@@ -22,8 +22,13 @@ A clinical trial on the value of extracorporeal membrane oxygenation for term ne
 respiratory failure. RCT compares active treatment against conventional management.
 }
 \examples{
-barchart(with(Roberts, table(EMO, Survived)), horizontal = FALSE, stack = FALSE,
-         xlab = "EMO treatment", ylab = "Number of subjects",
-         auto.key = list(title = "Survived", space = "right", cex = 0.8))
+data(Roberts)
+require(sjlabelled)
+
+require(sjPlot)
+plot_xtab(Roberts$EMO, Roberts$Survived, margin = 'row')
+
+Roberts \%>\%
+  cross_tab(Survived ~ EMO)
 }
 \keyword{datasets}
