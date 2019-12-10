@@ -29,7 +29,7 @@ ss_jk <- function(obs, stat)
 #'
 #' @param x A numeric variable. Missing values are removed by default.
 #' @return Data frame with the ranked squared differences.
-#' @seealso \link{rank_leverage}
+#' @seealso \code{\link{rank_leverage}}.
 #' @examples
 #' x <- rnorm(10, 170, 8)
 #' x
@@ -82,7 +82,7 @@ leverage <- function(x)
 #'
 #' @param x A numeric variable. Missing values are removed by default.
 #' @return A data frame ranking observations by their leverage around the mean.
-#' @seealso \link{jack_knife}
+#' @seealso \code{\link{jack_knife}}.
 #' @examples
 #' x <- rnorm(10, 170, 8)
 #' x
@@ -173,7 +173,6 @@ knife_mean <- function(x)
 #' @param bks Breaks defining the classes (see example).
 #' @param dg Number of digits for rounding (default = 2).
 #' @return A data frame with the classes, the mid-point, the frequencies, the relative and cumulative frequencies.
-#' @seealso \link{hist}
 #' @examples
 #' data(IgM, package="ISwR")
 #' Ab <- data.frame(IgM)
@@ -282,7 +281,7 @@ coef_det <- function(obs, fit)
 #' @details \code{rank_influence} is a wrap function that calls \link{influence.measures}, ranks observations on
 #' their significance influence on the model and displays the 10 most influential observations
 #' (if they are significant).
-#' @seealso \code{car::influence.measures}
+#' @seealso \code{\link[stats]{influence.measures}}.
 #' @examples
 #' data(diet, package = "Epi")
 #' model <- glm(chd ~ fibre, data = diet, family = binomial)

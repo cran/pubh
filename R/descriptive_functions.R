@@ -34,10 +34,10 @@ rel_dis <- function(x)
 #' round(reference_range(mean(x), sd(x)), 2)
 reference_range <- function(avg, std)
 {
-	lower.ri <- avg - qnorm(0.975) * std
-	upper.ri <- avg + qnorm(0.975) * std
-	ri <- data.frame(lower.ri, upper.ri)
-	ri
+  lower.ri <- avg - qnorm(0.975) * std
+  upper.ri <- avg + qnorm(0.975) * std
+  ri <- data.frame(lower.ri, upper.ri)
+  ri
 }
 
 #' Geometric mean.
@@ -51,14 +51,14 @@ reference_range <- function(avg, std)
 #' geo_mean(IgM)
 geo_mean <- function(x)
 {
-	positive.check <- which(x <= 0)
-	if (length(positive.check) >= 1) {
-		print('Some observations are not positive')
-		} else {
-		  lx <- length(x)
-		  geo <- exp(sum(log(x), na.rm = TRUE) / lx)
-		  geo
-		  }
+  positive.check <- which(x <= 0)
+  if (length(positive.check) >= 1) {
+    print('Some observations are not positive')
+  } else {
+    lx <- length(x)
+    geo <- exp(sum(log(x), na.rm = TRUE) / lx)
+    geo
+  }
 }
 
 #' Harmonic mean.
@@ -72,15 +72,15 @@ geo_mean <- function(x)
 #' harm_mean(IgM)
 harm_mean <- function(x)
 {
-	zero.check <- which(x == 0)
-	if (length(zero.check) >= 1) {
-	  print('Some observations are equal to zero')
-	  } else {
-	    lx <- length(x)
-	    inv <- sum(1 / x, na.rm = TRUE)
-	    harm <- lx / inv
-	    harm
-	    }
+  zero.check <- which(x == 0)
+  if (length(zero.check) >= 1) {
+    print('Some observations are equal to zero')
+  } else {
+    lx <- length(x)
+    inv <- sum(1 / x, na.rm = TRUE)
+    harm <- lx / inv
+    harm
+  }
 }
 
 #' Bootstrap Confidence Intervals.
@@ -94,7 +94,7 @@ harm_mean <- function(x)
 #' @param digits Number of digits for rounding (default = 2).
 #' @return A data frame with the estimate and confidence intervals.
 #' @examples
-#' data(IgM, package="ISwR")
+#' data(IgM, package = "ISwR")
 #' bst(IgM, "median")
 #'
 #' bst(IgM, "gmean")
@@ -151,100 +151,6 @@ stats_quotes <- function(x, data2, digits = 2)
   res
 }
 
-#' Cross-tabulation of categorical variables.
-#'
-#' \code{cross_tab} uses formulas to construct relatively simple pivot tables using functions from the \code{expss} package.
-#'
-#' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
-#' @param formula A formula with shape: ~ x or ~ x|z (for groups).
-#' @param data A data frame where the variables in the \code{formula} can be found.
-#' @param percent Character used to select column percentages (\code{"col"}, default) or row percentages (\code{"row"}).
-#' @return A table of class \code{etable}.
-#' @examples
-#' data(Oncho, package = 'pubh')
-#' Oncho <- Oncho %>%
-#'   apply_labels(
-#'     mf = 'Infection',
-#'     area = 'Residence',
-#'     agegrp = 'Age group (years)',
-#'     sex = 'Sex',
-#'     mfload = 'Load',
-#'     lesions = 'Number of lesions'
-#'  )
-#'
-#' Oncho %>%
-#'   cross_tab(mf ~ area)
-#'
-#' cross_tab(mf ~ sex|area, data = Oncho)
-#'
-#' require(dplyr)
-#' Oncho %>%
-#'   filter(sex == "Female") %>%
-#'   cross_tab(mf ~ agegrp)
-cross_tab <- function(object = NULL, formula = NULL, data = NULL, percent = 'col')
-{
-  if (inherits(object, "formula")) {
-    formula <- object
-    object <- NULL
-  }
-  if (inherits(object, "data.frame")) {
-    data <- object
-    object <- NULL
-  }
-  vars <- all.vars(formula)
-  nv <- length(vars)
-  if (percent=='row') {
-    if (nv == 2)
-    {
-      outcome <- data[[vars[1]]]
-      exposure <- data[[vars[2]]]
-      tbl <- data %>%
-        tab_cols(outcome, total()) %>%
-        tab_cells(exposure) %>%
-        tab_stat_cases(total_row_position = "below", label = "cases", total_label = "Total") %>%
-        tab_stat_rpct(total_row_position = "none", label = "row %") %>%
-        tab_pivot(stat_position = "inside_columns")
-    }
-    else {
-      outcome <- data[[vars[1]]]
-      exposure <- data[[vars[2]]]
-      stratum <- data[[vars[3]]]
-      tbl <- data %>%
-        tab_cols(outcome, total()) %>%
-        tab_cells(stratum) %>%
-        tab_rows(exposure) %>%
-        tab_stat_cases(total_row_position = "below", label = "cases", total_label = "Total") %>%
-        tab_stat_rpct(total_row_position = "none", label = "row %") %>%
-        tab_pivot(stat_position = "inside_columns")
-    }
-  } else
-    if (percent=='col'){
-      if (nv == 2)
-      {
-        outcome <- data[[vars[1]]]
-        exposure <- data[[vars[2]]]
-        tbl <- data %>%
-          tab_cols(outcome, total()) %>%
-          tab_cells(exposure) %>%
-          tab_stat_cases(total_row_position = "below", label = "cases", total_label = "Total") %>%
-          tab_stat_cpct(total_row_position = "none", label = "col %") %>%
-          tab_pivot(stat_position = "inside_columns")
-      }
-      else {
-        outcome <- data[[vars[1]]]
-        exposure <- data[[vars[2]]]
-        stratum <- data[[vars[3]]]
-        tbl <- data %>%
-          tab_cols(outcome, total()) %>%
-          tab_cells(stratum) %>%
-          tab_rows(exposure) %>%
-          tab_stat_cases(total_row_position = "below", label = "cases", total_label = "Total") %>%
-          tab_stat_cpct(total_row_position = "none", label = "col %") %>%
-          tab_pivot(stat_position = "inside_columns")
-      }
-    }
-  tbl
-}
 #' Descriptive statistics for continuous variables.
 #'
 #' \code{estat} calculates descriptives of numerical variables.
@@ -255,7 +161,7 @@ cross_tab <- function(object = NULL, formula = NULL, data = NULL, percent = 'col
 #' @param digits Number of digits for rounding (default = 2).
 #' @param label Label used to display the name of the variable (see examples).
 #' @return A data frame with descriptive statistics.
-#' @seealso \code{summary}, \code{moonBook::mytable}.
+#' @seealso \code{summary}, \code{\link[moonBook]{mytable}}.
 #' @examples
 #' data(kfm, package = "ISwR")
 #' require(sjlabelled)

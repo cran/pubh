@@ -118,7 +118,7 @@ gf_star <- function(fig, x1, y1, x2, y2, y3, legend = "*", ...)
 #' The default adjusting method is "mvt" which uses the multivariate t distribution.
 #' Other options are: "bonferroni", "holm", "hochberg", "tukey" and "none".
 #' @return A list with objects: \code{df} A data frame with ajusted p-values, \code{fig_ci} a plot with confidence intervals, \code{fig_pval} a plot comparing adjusted p-values.
-#' @seealso \code{emmeans::emmeans}, \code{emmeans::pwpp}.
+#' @seealso \code{\link[emmeans]{emmeans}}, \code{\link[emmeans]{pwpp}}.
 #' @examples
 #' data(birthwt, package = "MASS")
 #' birthwt$race <- factor(birthwt$race, labels = c("White", "African American", "Other"))

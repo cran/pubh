@@ -8,7 +8,7 @@ library(car)
 library(Hmisc)
 library(MASS)
 library(kableExtra)
-library(dplyr)
+library(tidyverse)
 library(mosaic)
 library(latex2exp)
 library(moonBook)
@@ -18,8 +18,7 @@ library(sjPlot)
 
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
 theme_update(legend.position = "top")
-options(table_counter = TRUE)
-options(knitr.table.format = 'pandoc')
+options(knitr.table.format = "pandoc")
 
 ## -----------------------------------------------------------------------------
 data(birthwt)
@@ -39,9 +38,9 @@ birthwt %>%
   group_by(race, smoke) %>%
   summarise(
     n = n(),
-    Mean = round(w_mean(bwt), 2),
-    SD = round(w_sd(bwt), 2),
-    Median = round(w_median(bwt), 2),
+    Mean = round(mean(bwt, na.rm = TRUE), 2),
+    SD = round(sd(bwt, na.rm = TRUE), 2),
+    Median = round(median(bwt, na.rm = TRUE), 2),
     CV = round(rel_dis(bwt), 2)
   ) %>%
   kable(caption = "Descriptive statistics of birth weight (g) by ethnicity
@@ -113,7 +112,7 @@ diet <- diet %>%
     )
 
 ## -----------------------------------------------------------------------------
-diet %>% estat(fibre~chd) %>% kable
+diet %>% estat(fibre ~ chd) %>% kable
 
 ## -----------------------------------------------------------------------------
 diet %>%
@@ -130,7 +129,7 @@ model_binom %>%
 model_binom %>% glance %>% round(digits = 2)
 
 ## -----------------------------------------------------------------------------
-plot_model(model_binom, "pred", terms="fibre [all]", title = "")
+plot_model(model_binom, "pred", terms = "fibre [all]", title = "")
 
 ## -----------------------------------------------------------------------------
 data(bdendo, package = "Epi") 
@@ -147,8 +146,9 @@ bdendo <- bdendo %>%
   )
 
 ## -----------------------------------------------------------------------------
-bdendo %>%
- cross_tab(cancer ~ est|gall)
+mytable(cancer ~ est + gall, data = bdendo, show.total = TRUE) %>%
+  mytable2df() %>%
+  kable()
 
 ## -----------------------------------------------------------------------------
 model_clogit <- clogit(cancer == 'Case'  ~ est * gall + strata(set), data = bdendo)
@@ -233,9 +233,9 @@ quine %>%
   group_by(Eth, Sex, Age) %>%
   summarise(
     n = n(),
-    Mean = round(w_mean(Days), 2),
-    SD = round(w_sd(Days), 2),
-    Median = round(w_median(Days), 2)
+    Mean = round(mean(Days, na.rm = TRUE), 2),
+    SD = round(sd(Days, na.rm = TRUE), 2),
+    Median = round(median(Days, na.rm = TRUE), 2)
   ) %>%
   kable()
 
@@ -336,7 +336,7 @@ plot_model(model_cox, type = "pred", terms = ~ rx, dot.size = 1,
   gf_labs(x = "Treatment", title = "")
 
 ## -----------------------------------------------------------------------------
-library(nlme, warn.conflicts = FALSE)
+library(nlme)
 data(Orthodont)
 
 ## -----------------------------------------------------------------------------
@@ -347,7 +347,6 @@ Orthodont <- Orthodont %>%
     )
 
 ## -----------------------------------------------------------------------------
-require(lme4)
 model_lme <- lme(distance ~ Sex * I(age - mean(age, na.rm = TRUE)), random = ~ 1|Subject, 
                  method = "ML", data = Orthodont)
 

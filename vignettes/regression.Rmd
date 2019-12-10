@@ -38,7 +38,7 @@ library(car)
 library(Hmisc)
 library(MASS)
 library(kableExtra)
-library(dplyr)
+library(tidyverse)
 library(mosaic)
 library(latex2exp)
 library(moonBook)
@@ -48,8 +48,7 @@ library(sjPlot)
 
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
 theme_update(legend.position = "top")
-options(table_counter = TRUE)
-options(knitr.table.format = 'pandoc')
+options(knitr.table.format = "pandoc")
 ```
 
 
@@ -80,9 +79,9 @@ birthwt %>%
   group_by(race, smoke) %>%
   summarise(
     n = n(),
-    Mean = round(w_mean(bwt), 2),
-    SD = round(w_sd(bwt), 2),
-    Median = round(w_median(bwt), 2),
+    Mean = round(mean(bwt, na.rm = TRUE), 2),
+    SD = round(sd(bwt, na.rm = TRUE), 2),
+    Median = round(median(bwt, na.rm = TRUE), 2),
     CV = round(rel_dis(bwt), 2)
   ) %>%
   kable(caption = "Descriptive statistics of birth weight (g) by ethnicity
@@ -200,7 +199,7 @@ diet <- diet %>%
 We start with descriptive statistics:
 
 ```{r}
-diet %>% estat(fibre~chd) %>% kable
+diet %>% estat(fibre ~ chd) %>% kable
 ```
 
 It is standard to plot the dependent variable in the $y$-axis, so in this case, we can use horizontal box-plots.
@@ -227,7 +226,7 @@ model_binom %>% glance %>% round(digits = 2)
 Effect plot:
 
 ```{r}
-plot_model(model_binom, "pred", terms="fibre [all]", title = "")
+plot_model(model_binom, "pred", terms = "fibre [all]", title = "")
 ```
 
 ## Matched Case-Control Studies: Conditional Logistic Regression
@@ -252,8 +251,9 @@ bdendo <- bdendo %>%
 We start with descriptive statistics:
 
 ```{r}
-bdendo %>%
- cross_tab(cancer ~ est|gall)
+mytable(cancer ~ est + gall, data = bdendo, show.total = TRUE) %>%
+  mytable2df() %>%
+  kable()
 ```
 
 We fit the conditional logistic model:
@@ -376,9 +376,9 @@ quine %>%
   group_by(Eth, Sex, Age) %>%
   summarise(
     n = n(),
-    Mean = round(w_mean(Days), 2),
-    SD = round(w_sd(Days), 2),
-    Median = round(w_median(Days), 2)
+    Mean = round(mean(Days, na.rm = TRUE), 2),
+    SD = round(sd(Days, na.rm = TRUE), 2),
+    Median = round(median(Days, na.rm = TRUE), 2)
   ) %>%
   kable()
 ```
@@ -553,7 +553,7 @@ plot_model(model_cox, type = "pred", terms = ~ rx, dot.size = 1,
 We look at the relationship between sex and age on the distance from the pituitary to the pterygomaxillary fissure (mm).
 
 ```{r}
-library(nlme, warn.conflicts = FALSE)
+library(nlme)
 data(Orthodont)
 ```
 
@@ -568,7 +568,6 @@ Orthodont <- Orthodont %>%
 We fit the model:
 
 ```{r}
-require(lme4)
 model_lme <- lme(distance ~ Sex * I(age - mean(age, na.rm = TRUE)), random = ~ 1|Subject, 
                  method = "ML", data = Orthodont)
 ```

@@ -21,17 +21,17 @@ contingency(
 
 \item{method}{A character string with options: "cohort.count", "cohort.time", "case.control", or "cross.sectional".}
 
-\item{...}{Further arguments passed to \code{\link{epi.2by2}}.}
+\item{...}{Further arguments passed to \code{epi.2by2}.}
 }
 \description{
-\code{contingency} is a wrap that calls \link{epi.2by2} from package \code{epiR}.
+\code{contingency} is a wrap that calls \code{epi.2by2} from package \code{epiR}.
 }
 \details{
 \code{contingency} uses a formula as a way to input variables.
 
 \code{contingency} displays the contingency table as a way for the user to check that the reference levels
 in the categorical variables (outcome and exposure) are correct. Then displays measures of association
-(table from \code{\link{epi.2by2}}). It also reports either chi-squared
+(table from \code{epi.2by2}). It also reports either chi-squared
 test or exact Fisher's test;
 \code{contingency} checks which one of the tests two is appropriate.
 }
@@ -45,13 +45,13 @@ cancer <- expand_df(cancer)
 contingency(status ~ alcohol, data = cancer, method = "case.control")
 
 data(Oncho)
+require(moonBook)
 
-Oncho \%>\%
-  cross_tab(mf ~ area)
+mytable(mf ~ area, data = Oncho, show.total = TRUE)
 
 Oncho \%>\%
   contingency(mf ~ area)
 }
 \seealso{
-\code{epiR::epi.2by2}
+\code{\link[epiR]{epi.2by2}}.
 }

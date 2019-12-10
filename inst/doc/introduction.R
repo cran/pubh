@@ -14,7 +14,7 @@ library(car)
 library(Hmisc)
 library(MASS)
 library(kableExtra)
-library(dplyr)
+library(tidyverse)
 library(mosaic)
 library(latex2exp)
 library(moonBook)
@@ -22,15 +22,16 @@ library(pubh)
 library(sjlabelled)
 library(sjPlot)
 
-## -----------------------------------------------------------------------------
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
+theme_update(legend.position = "top")
+options(knitr.table.format = 'pandoc')
 
 ## -----------------------------------------------------------------------------
 data(Hodgkin)
 Hodgkin <- Hodgkin %>%
   mutate(Ratio = CD4/CD8) %>%
   var_labels(
-    Ratio = "CD4 / CD8 T cells ratio"
+    Ratio = "CD4+ / CD8+ T-cells ratio"
     )
 kable(head(Hodgkin))
 
@@ -53,7 +54,8 @@ var.test(Ratio ~ Group, data = Hodgkin)
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
-  qq_plot(~ Ratio|Group)
+  qq_plot(~ Ratio|Group) %>%
+  axis_labs()
 
 ## -----------------------------------------------------------------------------
 wilcox.test(Ratio ~ Group, data = Hodgkin)
@@ -153,12 +155,9 @@ data(Bernard)
 kable(head(Bernard))
 
 ## -----------------------------------------------------------------------------
-mytable(treat ~ fate, data = Bernard, show.total = TRUE)$res[, 1:4] %>%
+mytable(treat ~ fate, data = Bernard, show.total = TRUE) %>%
+  mytable2df() %>%
   kable() 
-
-## -----------------------------------------------------------------------------
-Bernard %>%
-  cross_tab(treat ~ fate)
 
 ## -----------------------------------------------------------------------------
 dat <- matrix(c(84, 140 , 92, 139), nrow = 2, byrow = TRUE)
@@ -186,8 +185,7 @@ oswego <- oswego %>%
   )
 
 ## -----------------------------------------------------------------------------
-oswego %>%
-  cross_tab(ill ~ sex|chocolate.ice.cream)
+mytable(ill ~ sex + chocolate.ice.cream, data = oswego, show.total = TRUE)
 
 ## -----------------------------------------------------------------------------
 oswego %>%
@@ -206,7 +204,7 @@ Xray <- gl(2, 2, labels=c("Negative", "Positive"))
 tb <- data.frame(Freq, BCG, Xray)
 tb <- expand_df(tb)
 
-diag_test(BCG ~ Xray, data=tb)
+diag_test(BCG ~ Xray, data = tb)
 
 ## -----------------------------------------------------------------------------
 diag_test2(22, 51, 8, 1739)
