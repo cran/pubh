@@ -151,6 +151,70 @@ stats_quotes <- function(x, data2, digits = 2)
   res
 }
 
+#' Cross-tabulation.
+#'
+#' \code{cross_tab} is a wrapper to functions from package \code{finalfit} to construct tables of descriptive statistics stratifed by levels of a categorical outcome.
+#'
+#' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
+#' @param formula A formula with shape: \code{y ~ x}, where \code{y} is a categorical outcome and \code{x} is the explanatory variable or a set of explanatory variables (see Details and Examples).
+#' @param data A data frame where the variables in the \code{formula} can be found.
+#' @param label A character, label used to name the first column of the data frame.
+#' @param catTest A function of a frequency table (an integer matrix) that returns a list with the same components as created by conTest. By default, the Pearson chi-square test is done, without continuity correction (the continuity correction would make the test conservative like the Fisher exact test).
+#' @param ... Aditional arguments passed to \code{\link[finalfit]{summary_factorlist}}.
+#' @details Function \code{cross_tab} is a relatively simple wrapper to functions of package \code{finalfit}. Its main purpose is to construct contingency tables but it can also be used to report a table with descriptives for all variables as long as they are still stratified by the outcome. Please see examples to see how to list explanatory variables. For categorical explanatory variables, the function reports column percentages by default; row proportions can be obtained with additional argument: \code{column = FALSE}. If data is labelled with \code{sjlabelled}, the label of the outcome (dependent) variable is used to name the first column of the resulting data frame; this name can be changed with argument \code{label}.
+#' @return A data frame with descriptive statistics stratifed by levels of the outcome.
+#' @seealso \code{\link[finalfit]{summary_factorlist}}, \code{\link[moonBook]{mytable}}.
+#' @examples
+#' data(Oncho)
+#'
+#' ## A two by two contingency table:
+#' Oncho %>%
+#'   cross_tab(mf ~ area)
+#'
+#' ## Reporting row proportions (risks) instead of column proportions:
+#' Oncho %>%
+#'   cross_tab(mf ~ area, column = FALSE)
+#'
+#' ## Removing the name of the first column:
+#' Oncho %>%
+#'   cross_tab(mf ~ area, label = "")
+#'
+#' ## Contingency table for both sex and area of residence:
+#' Oncho %>%
+#'   cross_tab(mf ~ sex + area, p = TRUE)
+#'
+#' ## Descriptive statistics for all variables in the \code{Oncho} data set except \code{id}.
+#' require(dplyr)
+#' Oncho %>%
+#'   select(- id) %>%
+#'   cross_tab(mf ~ ., label = "Parameter")
+cross_tab <- function(object = NULL, formula = NULL, data = NULL,
+                      label = NULL, catTest = chisq.fisher, ...)
+{
+  if (inherits(object, "formula")) {
+    formula <- object
+    object <- NULL
+  }
+  if (inherits(object, "data.frame")) {
+    data <- object
+    object <- NULL
+  }
+  vars <- all.vars(formula)
+  dependent <- vars[1]
+  explanatory <- vars[-1]
+  outcome <- data[[dependent]]
+  if (is.null(sjlabelled::get_label(outcome)) == FALSE & is.null(label)){
+    lab <- sjlabelled::get_label(outcome)
+  } else {
+    lab <- ifelse(is.null(label), dependent, label)
+  }
+  data %>%
+    finalfit::summary_factorlist(dependent, explanatory, total_col = TRUE, catTest = catTest, ...) %>%
+    finalfit::ff_column_totals(data, dependent) -> tbl1
+  names(tbl1)[1] <- lab
+  tbl1
+}
+
 #' Descriptive statistics for continuous variables.
 #'
 #' \code{estat} calculates descriptives of numerical variables.

@@ -1,6 +1,6 @@
 Package: pubh
 Title: A Toolbox for Public Health and Epidemiology
-Version: 1.1.3
+Version: 1.1.5
 Authors@R: c(
     person("Josie", "Athens", email = "josie.athens@otago.ac.nz", role = c("aut", "cre")),
     person("Frank", "Harell", email = "f.harrell@vanderbilt.edu", role = "ctb"),
@@ -16,24 +16,24 @@ Description: A toolbox for making R functions and capabilities more
     or Public Health. Please note that use of the 
     provided data sets is for educational purposes only.
 Depends: R (>= 3.6.0), emmeans, ggformula, magrittr, stats
-Imports: car, dplyr, Epi, epiR, epitools, ggplot2, Hmisc, lmtest,
-        sandwich, sjlabelled, sjPlot, survival
-Suggests: broom, bookdown, GGally, ggeffects, ggsci, haven, ISwR,
-        kableExtra, knitr, latex2exp, lme4, MASS, moonBook, mosaic,
-        nlme, nnet, ordinal, psych, reshape2, rmarkdown, scales,
-        tidyverse, ztable
+Imports: car, dplyr, Epi, epiR, epitools, finalfit, ggplot2, Hmisc,
+        lmtest, sandwich, sjlabelled, sjPlot, survival
+Suggests: broom, bookdown, GGally, ggeffects, ggpubr, ggsci, haven,
+        ISwR, kableExtra, knitr, latex2exp, lme4, MASS, moonBook,
+        mosaic, nlme, nnet, ordinal, psych, reshape2, rmarkdown, rms,
+        scales, tidyverse
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.1
+RoxygenNote: 7.0.2
 VignetteBuilder: knitr
 URL: https://github.com/josie-athens/pubh
 BugReports: https://github.com/josie-athens/pubh/issues
 NeedsCompilation: no
-Packaged: 2019-12-10 04:22:46 UTC; josie
+Packaged: 2020-02-03 21:51:30 UTC; josie
 Author: Josie Athens [aut, cre],
   Frank Harell [ctb],
   John Fox [ctb],
   R-Core [ctb]
 Repository: CRAN
-Date/Publication: 2019-12-10 11:30:08 UTC
+Date/Publication: 2020-02-03 22:40:03 UTC

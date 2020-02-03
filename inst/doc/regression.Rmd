@@ -33,15 +33,10 @@ The aim of this vignette is to illustrate the use/functionality of the `glm_coef
 We start by loading relevant packages and setting the theme for the plots (as suggested in the Template of this package):
 
 ```{r, message=FALSE}
-library(broom)
-library(car)
-library(Hmisc)
-library(MASS)
 library(kableExtra)
 library(tidyverse)
 library(mosaic)
 library(latex2exp)
-library(moonBook)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
@@ -59,7 +54,7 @@ For continuous outcomes there is no need of exponentiating the results unless th
 We can generate factors and assign labels in the same `pipe` stream:
 
 ```{r}
-data(birthwt)
+data(birthwt, package = "MASS")
 birthwt <- birthwt %>%
   mutate(
     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
@@ -117,6 +112,13 @@ model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 
 > **Note:** Model diagnostics are not be discussed in this vignette.
 
+First, we load the following packages to help us with regression:
+
+```{r}
+library(car)
+library(broom)
+```
+
 Traditional output from the model:
 
 ```{r}
@@ -157,7 +159,8 @@ model_norm %>%
                       "Smoker - No smoker",
                       "African American - White",
                       "Other - White")) %>%
-  kable(caption = "Table of coefficients using robust standard errors.")
+  kable(caption = "Table of coefficients using robust standard errors.",
+        align = "r")
 ```
 
 The function `glance` from the `broom` package allow us to have a quick look at statistics related with the model.
@@ -251,14 +254,15 @@ bdendo <- bdendo %>%
 We start with descriptive statistics:
 
 ```{r}
-mytable(cancer ~ est + gall, data = bdendo, show.total = TRUE) %>%
-  mytable2df() %>%
+bdendo %>%
+  cross_tab(cancer ~ est + gall) %>%
   kable()
 ```
 
 We fit the conditional logistic model:
 
 ```{r}
+library(survival)
 model_clogit <- clogit(cancer == 'Case'  ~ est * gall + strata(set), data = bdendo)
 model_clogit %>%
   glm_coef(labels = c("Oestrogen/No oestrogen", "GBD/No GBD",
@@ -290,8 +294,8 @@ bdendo_pred %>%
 We use data about house satisfaction.
 
 ```{r}
-library(ordinal, warn.conflicts = FALSE)
-data(housing)
+library(ordinal)
+data(housing, package = "MASS")
 housing <- housing %>%
   var_labels(
     Sat = "Satisfaction",
@@ -355,7 +359,7 @@ emmip(model_clm, Infl ~ Type |Cont) %>%
 For Poisson regression we are interested in incidence rate ratios. We will look at the effect of sex, ethnicity and age group on number of absent days from school in a year.
 
 ```{r}
-data(quine)
+data(quine, package = "MASS")
 levels(quine$Eth) <- c("Aboriginal", "White")
 levels(quine$Sex) <- c("Female", "Male")
 ```
@@ -383,7 +387,6 @@ quine %>%
   kable()
 ```
 
-
 We start by fitting a standard Poisson linear regression model:
 
 ```{r}
@@ -407,6 +410,7 @@ deviance(model_pois) / df.residual(model_pois)
 Thus, we have over-dispersion. One option is to use a negative binomial distribution.
 
 ```{r}
+library(MASS)
 model_negbin <- glm.nb(Days ~ Eth + Sex + Age, data = quine)
 glm_coef(model_negbin, 
          labels=c(

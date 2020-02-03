@@ -9,15 +9,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = NA, size = "small",
 #  y ~ x|z, data = my_data
 
 ## ---- message=FALSE-----------------------------------------------------------
-library(broom)
-library(car)
-library(Hmisc)
-library(MASS)
 library(kableExtra)
 library(tidyverse)
 library(mosaic)
 library(latex2exp)
-library(moonBook)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
@@ -27,26 +22,42 @@ theme_update(legend.position = "top")
 options(knitr.table.format = 'pandoc')
 
 ## -----------------------------------------------------------------------------
+data("Oncho")
+head(Oncho)
+
+## -----------------------------------------------------------------------------
+Oncho %>%
+  cross_tab(mf ~ area) %>%
+  kable
+
+## -----------------------------------------------------------------------------
+Oncho %>%
+  select(- id) %>%
+  cross_tab(mf ~ .) %>%
+  kable
+
+## -----------------------------------------------------------------------------
 data(Hodgkin)
 Hodgkin <- Hodgkin %>%
   mutate(Ratio = CD4/CD8) %>%
   var_labels(
     Ratio = "CD4+ / CD8+ T-cells ratio"
     )
-kable(head(Hodgkin))
-
-## -----------------------------------------------------------------------------
-Hodgkin %>%
-  estat(~ CD4)
+head(Hodgkin)
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
   estat(~ CD4) %>%
-  kable()
+  kable
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
   estat(~ Ratio|Group) %>%
+  kable()
+
+## -----------------------------------------------------------------------------
+Hodgkin %>%
+  cross_tab(Group ~ .) %>%
   kable()
 
 ## -----------------------------------------------------------------------------
@@ -133,11 +144,15 @@ model_bwt %>%
 tab_model(model_bwt,  collapse.ci = TRUE)
 
 ## ---- eval = FALSE, echo = FALSE----------------------------------------------
-#  unadj <- glm_coef(model_bwt, labels = c("Constant",
-#                                        "Smoking: smoker - non-smoker",
-#                                        "Race: African American - White",
-#                                        "Race: Other - White"))
-#  kable(unadj)
+#  model_bwt %>%
+#    glm_coef(model_bwt,
+#             labels = c(
+#               "Constant",
+#               "Smoking: smoker - non-smoker",
+#               "Race: African American - White",
+#               "Race: Other - White")
+#             ) %>%
+#    kable()
 
 ## -----------------------------------------------------------------------------
 multiple(model_bwt, "race" )$df
@@ -155,8 +170,8 @@ data(Bernard)
 kable(head(Bernard))
 
 ## -----------------------------------------------------------------------------
-mytable(treat ~ fate, data = Bernard, show.total = TRUE) %>%
-  mytable2df() %>%
+Bernard %>%
+  cross_tab(treat ~ fate) %>%
   kable() 
 
 ## -----------------------------------------------------------------------------
@@ -165,7 +180,7 @@ epiR::epi.2by2(as.table(dat))
 
 ## -----------------------------------------------------------------------------
 Bernard %>%
-  contingency(fate ~ treat)
+  contingency(fate ~ treat) 
 
 ## ----eval=FALSE---------------------------------------------------------------
 #  outcome ~ stratum/exposure, data = my_data
@@ -185,7 +200,9 @@ oswego <- oswego %>%
   )
 
 ## -----------------------------------------------------------------------------
-mytable(ill ~ sex + chocolate.ice.cream, data = oswego, show.total = TRUE)
+oswego %>%
+  cross_tab(ill ~ sex + chocolate.ice.cream) %>%
+  kable()
 
 ## -----------------------------------------------------------------------------
 oswego %>%

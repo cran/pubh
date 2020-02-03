@@ -6,8 +6,8 @@
 \title{Extracorporeal membrane oxygenation in neonates.}
 \format{A labelled tibble with 185 rows and 2 variables:
 \describe{
-\item{EMO}{Extracorporeal membrane oxygenation treatment, factor with levels "No" and "Yes".}
-\item{Survived}{One year survival, factor with levels "No" and "Yes".}
+\item{emo}{Extracorporeal membrane oxygenation treatment, factor with levels "No" and "Yes".}
+\item{survived}{One year survival, factor with levels "No" and "Yes".}
 }}
 \source{
 Roberts, TE (1998) Extracorporeal Membrane Oxygenation Economics Working Group. Economic
@@ -24,7 +24,7 @@ respiratory failure. RCT compares active treatment against conventional manageme
 \examples{
 data(Roberts)
 
-require(sjPlot)
-plot_xtab(Roberts$EMO, Roberts$Survived, margin = 'row')
+Roberts \%>\%
+  cross_tab(survived ~ emo, column = FALSE)
 }
 \keyword{datasets}

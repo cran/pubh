@@ -6,19 +6,19 @@
 #' according to parental history of duodenal or gastric ulcer.
 #' @format A labelled tibble with 863 rows and 2 variables:
 #' \describe{
-#' \item{Ulcer}{History of duodenal or gastric ulcer, factor with levels "No" and "Yes".}
-#' \item{Infected}{Infected with Helicobacter pylori, factor with levels "No" and "Yes".}
+#' \item{ulcer}{History of duodenal or gastric ulcer, factor with levels "No" and "Yes".}
+#' \item{infected}{Infected with Helicobacter pylori, factor with levels "No" and "Yes".}
 #' }
 #' @source Brenner H, Rothenbacher D, Bode G, Adler G (1998) Parental history of gastric or duodenal ulcer
 #' and prevalence of Helicobacter pylori infection in preschool children: population based study.
 #' BMJ 316:665.
 #' @examples
 #' data(Brenner)
-#' require(moonBook)
 #'
-#' mytable(Infected ~ Ulcer, data = Brenner, show.total =TRUE)
+#' Brenner %>%
+#'   cross_tab(infected ~ ulcer)
 #'
-#' contingency(Infected ~ Ulcer, data = Brenner, method = "cross.sectional")
+#' contingency(infected ~ ulcer, data = Brenner, method = "cross.sectional")
 "Brenner"
 
 #' Extracorporeal membrane oxygenation in neonates.
@@ -27,8 +27,8 @@
 #' respiratory failure. RCT compares active treatment against conventional management.
 #' @format A labelled tibble with 185 rows and 2 variables:
 #' \describe{
-#' \item{EMO}{Extracorporeal membrane oxygenation treatment, factor with levels "No" and "Yes".}
-#' \item{Survived}{One year survival, factor with levels "No" and "Yes".}
+#' \item{emo}{Extracorporeal membrane oxygenation treatment, factor with levels "No" and "Yes".}
+#' \item{survived}{One year survival, factor with levels "No" and "Yes".}
 #' }
 #' @source Roberts, TE (1998) Extracorporeal Membrane Oxygenation Economics Working Group. Economic
 #' evaluation and randomised controlled trial of extracorporeal membrane oxygenation: UK collaborative
@@ -36,8 +36,8 @@
 #' @examples
 #' data(Roberts)
 #'
-#' require(sjPlot)
-#' plot_xtab(Roberts$EMO, Roberts$Survived, margin = 'row')
+#' Roberts %>%
+#'   cross_tab(survived ~ emo, column = FALSE)
 "Roberts"
 
 #' Breast cancer and age of childbirth.
@@ -46,19 +46,19 @@
 #' cancer is related to the age that a woman gives childbirth.
 #' @format A labelled tibble with 185 rows and 2 variables:
 #' \describe{
-#' \item{Cancer}{Diagnosed with breast cancer, a factor with levels "No" and "Yes".}
-#' \item{Age}{Age mother gives childbirth, factor with levels "<20", "20-24",
+#' \item{cancer}{Diagnosed with breast cancer, a factor with levels "No" and "Yes".}
+#' \item{age}{Age mother gives childbirth, factor with levels "<20", "20-24",
 #' "25-29", "30-34" and ">34".}
 #' }
 #' @source Macmahon, B. et al. (1970). Age at first birth and breast cancer risk. Bull WHO 43, 209-221.
 #' @examples
 #' data(Macmahon)
-#' require(moonBook)
 #'
-#' mytable(Cancer ~ Age, data = Macmahon, show.total = TRUE)
+#' Macmahon %>%
+#'   cross_tab(cancer ~ age)
 #'
-#' odds_trend(Cancer ~ Age, data = Macmahon)$df
-#' odds_trend(Cancer ~ Age, data = Macmahon)$fig
+#' odds_trend(cancer ~ age, data = Macmahon)$df
+#' odds_trend(cancer ~ age, data = Macmahon)$fig
 "Macmahon"
 
 #' Passive smoking in adulthood and cancer risk.
@@ -75,11 +75,11 @@
 #' @source Sandler, DP, Everson, RB, Wilcox, AJ (1985). Passive smoking in adulthood and cancer risk. Amer J Epidem, 121: 37-48.
 #' @examples
 #' data(Sandler)
-#' require(moonBook)
 #'
-#' mytable(cancer ~ passive, data = Sandler, show.total = TRUE)
+#' Sandler %>%
+#'   cross_tab(cancer ~ passive)
 #'
-#' mytable(cancer ~ passive+smoke, data = Sandler, show.total = TRUE)
+#' cross_tab(cancer ~ passive + smoke, data = Sandler)
 #'
 #' mhor(cancer ~ smoke/passive, data = Sandler)
 "Sandler"
@@ -100,11 +100,9 @@
 #' Biostatistics. Springer.
 #' @examples
 #' data(Vanderpump)
-#' require(moonBook)
 #'
-#' mytable(vstatus ~ smoker, data = Vanderpump, show.total = TRUE)
-#'
-#' mytable(vstatus + smoker ~ agegrp, data = Vanderpump, show.total = TRUE)
+#' Vanderpump %>%
+#'   cross_tab(vstatus ~ .)
 #'
 #' mhor(vstatus ~ agegrp/smoker, data = Vanderpump)
 "Vanderpump"
@@ -127,9 +125,8 @@
 #' @source Rothman, KJ (2002) Epidemiology. An Introduction. Oxford University Press.
 #' @examples
 #' data(Rothman)
-#' require(moonBook)
 #'
-#' mytable(stroke ~ oc + ht, data = Rothman, show.total = TRUE)
+#' cross_tab(stroke ~ oc + ht, data = Rothman)
 #'
 #' mhor(stroke ~ ht/oc, data = Rothman)
 #'
@@ -148,7 +145,7 @@
 #' require(sjlabelled)
 #' Rothman$join <- set_label(Rothman$join, label = "Exposure")
 #'
-#' mytable(stroke ~ join, data = Rothman, show.total = TRUE)
+#' cross_tab(stroke ~ join, data = Rothman)
 #'
 #' model2 <- glm(stroke ~ join, data = Rothman, family = binomial)
 #' glm_coef(model2)

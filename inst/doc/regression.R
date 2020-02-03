@@ -3,15 +3,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = NA, size = "small",
                       message = FALSE, warning = FALSE)
 
 ## ---- message=FALSE-----------------------------------------------------------
-library(broom)
-library(car)
-library(Hmisc)
-library(MASS)
 library(kableExtra)
 library(tidyverse)
 library(mosaic)
 library(latex2exp)
-library(moonBook)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
@@ -21,7 +16,7 @@ theme_update(legend.position = "top")
 options(knitr.table.format = "pandoc")
 
 ## -----------------------------------------------------------------------------
-data(birthwt)
+data(birthwt, package = "MASS")
 birthwt <- birthwt %>%
   mutate(
     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
@@ -62,6 +57,10 @@ birthwt %>%
 model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 
 ## -----------------------------------------------------------------------------
+library(car)
+library(broom)
+
+## -----------------------------------------------------------------------------
 model_norm %>%
   Anova() 
 
@@ -88,7 +87,8 @@ model_norm %>%
                       "Smoker - No smoker",
                       "African American - White",
                       "Other - White")) %>%
-  kable(caption = "Table of coefficients using robust standard errors.")
+  kable(caption = "Table of coefficients using robust standard errors.",
+        align = "r")
 
 ## -----------------------------------------------------------------------------
 model_norm %>% glance %>% round(digits = 2)
@@ -146,11 +146,12 @@ bdendo <- bdendo %>%
   )
 
 ## -----------------------------------------------------------------------------
-mytable(cancer ~ est + gall, data = bdendo, show.total = TRUE) %>%
-  mytable2df() %>%
+bdendo %>%
+  cross_tab(cancer ~ est + gall) %>%
   kable()
 
 ## -----------------------------------------------------------------------------
+library(survival)
 model_clogit <- clogit(cancer == 'Case'  ~ est * gall + strata(set), data = bdendo)
 model_clogit %>%
   glm_coef(labels = c("Oestrogen/No oestrogen", "GBD/No GBD",
@@ -170,8 +171,8 @@ bdendo_pred %>%
   gf_labs(y = "P(cancer)", x = "", col = get_label(bdendo$gall))
 
 ## -----------------------------------------------------------------------------
-library(ordinal, warn.conflicts = FALSE)
-data(housing)
+library(ordinal)
+data(housing, package = "MASS")
 housing <- housing %>%
   var_labels(
     Sat = "Satisfaction",
@@ -216,7 +217,7 @@ emmip(model_clm, Infl ~ Type |Cont) %>%
   gf_labs(x = "Type of rental", col = "Perceived influence")
 
 ## -----------------------------------------------------------------------------
-data(quine)
+data(quine, package = "MASS")
 levels(quine$Eth) <- c("Aboriginal", "White")
 levels(quine$Sex) <- c("Female", "Male")
 
@@ -250,6 +251,7 @@ model_pois %>% glance %>% round(digits = 2)
 deviance(model_pois) / df.residual(model_pois)
 
 ## -----------------------------------------------------------------------------
+library(MASS)
 model_negbin <- glm.nb(Days ~ Eth + Sex + Age, data = quine)
 glm_coef(model_negbin, 
          labels=c(
