@@ -145,7 +145,6 @@ prop_or <- function(p2, or)
 #' significant or not.
 #'
 #' @details \code{odds_trend} is a wrap function that calls \code{oddsratio} from package \code{epitools}.
-#' @seealso \code{epitools::oddsratio}
 #' @param formula A formula with shape: outcome ~ exposure.
 #' @param data A data frame where the variables in the \code{formula} can be found.
 #' @param angle Angle of for the x labels (default = 45).
@@ -326,7 +325,7 @@ contingency <- function(object = NULL, formula = NULL, data = NULL, method="coho
 #' @param bb Number of cases where exposure is present but outcome is absent.
 #' @param cc Number of cases where exposure is absent but outcome is present.
 #' @param dd Number of cases where both exposure and outcome are absent.
-#' @param ... Further arguments passed to \code{epi.2by2}.
+#' @param ... Further arguments passed to \code{\link[epiR]{epi.2by2}}.
 #' @seealso \code{\link[epiR]{epi.2by2}}.
 #' @examples
 #' ## A case-control study on the effect of alcohol on oesophageal cancer.

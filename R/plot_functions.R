@@ -111,13 +111,16 @@ gf_star <- function(fig, x1, y1, x2, y2, y3, legend = "*", ...)
 #' \code{multiple} displays results from post-doc analysis and constructs corresponding plot.
 #'
 #' @param model A fitted model supported by \code{emmeans}, such as the result of a call to \code{aov}, \code{lm}, \code{glm}, etc.
-#' @param formula A formula with shape: \code{~ y} or \code{~ y|x} (for interactions). Where \code{y} is the term of the model that on which comparisons are made and \code{x} is a term interacting with \code{y}.
-#' @param digits Number of digits for rounding (default = 2).
+#' @param formula A formula with shape: \code{~ y} or \code{~ y|x} (for interactions). Where \code{y} is the term of the model on which comparisons are made and \code{x} is a term interacting with \code{y}.
 #' @param adjust Method to adjust CIs and p-values (see details).
+#' @param type Type of prediction  (matching "linear.predictor", "link", or "response").
+#' @param level Confidence interval significance level.
+#' @param digits Number of digits for rounding (default = 2).
+#' @param ... Further arguments passed to \code{\link[emmeans]{emmeans}}.
 #' @details
 #' The default adjusting method is "mvt" which uses the multivariate t distribution.
 #' Other options are: "bonferroni", "holm", "hochberg", "tukey" and "none".
-#' @return A list with objects: \code{df} A data frame with ajusted p-values, \code{fig_ci} a plot with confidence intervals, \code{fig_pval} a plot comparing adjusted p-values.
+#' @return A list with objects: \code{df} A data frame with ajusted p-values, \code{fig_ci} a plot with estimates and adjusted confidence intervals and \code{fig_pval} a plot comparing adjusted p-values.
 #' @seealso \code{\link[emmeans]{emmeans}}, \code{\link[emmeans]{pwpp}}.
 #' @examples
 #' data(birthwt, package = "MASS")
@@ -127,28 +130,61 @@ gf_star <- function(fig, x1, y1, x2, y2, y3, legend = "*", ...)
 #' multiple(model_1, ~ race)$df
 #'
 #' multiple(model_1, ~ race)$fig_ci %>%
-#' gf_labs(y = 'Race', x = 'Birth weight (g)')
+#'   gf_labs(y = 'Race', x = 'Difference in birth weights (g)')
 #'
 #' multiple(model_1, ~ race)$fig_pval %>%
-#' gf_labs(y = 'Race')
-multiple <- function(model, formula, adjust = 'mvt', digits = 2)
+#'   gf_labs(y = 'Race')
+multiple <- function (model, formula, adjust = "mvt",
+                      type = "response", level = 0.95, digits = 2, ...)
 {
-  term_emm <- emmeans(model, formula)
-  df <- as.data.frame(pairs(term_emm, adjust = adjust))
-  df$p.value <- round_pval(df[['p.value']])
-  df$estimate <- round(df[['estimate']], digits = digits)
-  df$SE <- round(df[['SE']], digits = digits)
-  if (is.null(df$t.ratio)) {
-    df$z.ratio <- round(df[['z.ratio']], digits = digits)
+  term_emm <- emmeans(model, formula, type = type, ...)
+  emm_df <- as.data.frame(pairs(term_emm, adjust = adjust))
+  emm_ci <- as.data.frame(confint(pairs(term_emm, adjust = adjust), level = level))
+  log10_pval <- log10(emm_df[["p.value"]])
+  emm_df$p.value <- round_pval(emm_df[["p.value"]])
+  emm_df <- emm_df %>%
+    dplyr::select(- df)
+  emm_ci <- emm_ci %>%
+    dplyr::select(- df)
+  vars <- all.vars(formula)
+  n <- length(vars)
+  if(n == 1){
+    names(emm_ci)[4:5] <- c("lower.CL", "upper.CL")
   } else {
-    df$t.ratio <- round(df[['t.ratio']], digits = digits)
+    names(emm_ci)[5:6] <- c("lower.CL", "upper.CL")
   }
-  model_formula <- formula(model)
-  vars <- all.vars(model_formula)
-  fig_ci <- plot(term_emm, adjust = adjust, comparisons = TRUE, type = 'response')
+  emm_df = cbind(emm_df, lower.CL = emm_ci[["lower.CL"]], upper.CL = emm_ci[["upper.CL"]])
+  emm_df <- sjmisc::round_num(emm_df, digits = digits)
+  emm_plot <- emm_df
+  emm_plot$p_val <- log10_pval
+  if(n == 1){
+    names(emm_plot)[2] <- "Effect"
+    if(names(emm_df)[2] == "estimate") {
+      fig_ci <- emm_plot %>%
+        gf_pointrangeh(contrast ~ Effect + lower.CL + upper.CL, col = ~ log10_pval, ylab = " ") %>%
+        gf_vline(xintercept = ~ 0, lty = 2, col = "indianred")
+    } else {
+      fig_ci <- emm_plot %>%
+        gf_pointrangeh(contrast ~ Effect + lower.CL + upper.CL, col = ~ log10_pval, ylab = " ") %>%
+        gf_vline(xintercept = ~ 1, lty = 2, col = "indianred")
+    }
+  } else{
+    names(emm_plot)[3] <- "Effect"
+    names(emm_plot)[2] <- "confounder"
+    if(names(emm_df)[3] == "estimate") {
+      fig_ci <- emm_plot %>%
+        gf_pointrangeh(contrast ~ Effect + lower.CL + upper.CL|confounder, col = ~ log10_pval, ylab = " ") %>%
+        gf_vline(xintercept = ~ 0, lty = 2, col = "indianred")
+    } else {
+      fig_ci <- emm_plot %>%
+        gf_pointrangeh(contrast ~ Effect + lower.CL + upper.CL|confounder, col = ~ log10_pval, ylab = " ") %>%
+        gf_vline(xintercept = ~ 1, lty = 2, col = "indianred")
+    }
+  }
   fig_pval <- pwpp(term_emm, adjust = adjust)
-  res = list(df = df, fig_ci = fig_ci, fig_pval = fig_pval)
+  res = list(df = emm_df, fig_ci = fig_ci, fig_pval = fig_pval)
 }
+
 #' Bland-Altman agreement plots.
 #'
 #' @details \code{bland_altman} constructs Bland-Altman agreement plots.

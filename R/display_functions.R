@@ -9,6 +9,52 @@ round_pval <- function(pval)
 	res <- ifelse(pval < 0.001, "< 0.001", round(pval, 3))
 }
 
+#' Using labels as coefficient names in tables of coefficients.
+#'
+#' \code{model_labels} replaces row names in \code{glm_coef} with labels from the original data frame.
+#' @details \code{model_labels} does not handle yet interaction terms, see examples.
+#' @details Please read the Vignette on Regression for more examples.
+#' @param model A generalised linear model.
+#' @param intercept Logical, should the intercept be added to the list of coefficients?
+#' @examples
+#' require(dplyr)
+#' require(sjlabelled)
+#'
+#' data(birthwt, package = "MASS")
+#' birthwt <- birthwt %>%
+#'   mutate(
+#'     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
+#'     race = factor(race, labels = c("White", "African American", "Other"))
+#'   ) %>%
+#'   var_labels(
+#'     bwt = 'Birth weight (g)',
+#'     smoke = 'Smoking status',
+#'     race = 'Race'
+#'   )
+#'
+#' model_norm <- lm(bwt ~ smoke + race, data = birthwt)
+#'
+#' glm_coef(model_norm, labels = model_labels(model_norm))
+#'
+#' model_int = lm(formula = bwt ~ smoke*race, data = birthwt)
+#'
+#' model_int %>%
+#'   glm_coef(labels = c(
+#'     model_labels(model_int),
+#'     "Smoker: African American",
+#'     "Smoker: Other"
+#'  ))
+model_labels <- function(model, intercept = TRUE) {
+  tl <- sjlabelled::term_labels(model, prefix = "label")
+  rn <- glm_coef(model)$Parameter
+  if(intercept == TRUE) {
+    labs <- c("Constant", tl[tidyselect::vars_select(names(tl), tidyselect::matches(rn))])
+  } else {
+    labs <- tl[tidyselect::vars_select(names(tl), tidyselect::matches(rn))]
+  }
+  labs
+}
+
 #' Table of coefficients from generalised linear models.
 #'
 #' \code{glm_coef} displays estimates with confidence intervals and p-values from generalised linear models (see Details).
@@ -34,18 +80,25 @@ round_pval <- function(pval)
 #' @param exp_norm Logical, should estimates and confidence intervals should be exponentiated? (for family == "gaussian").
 #' @return A data frame with estimates, confidence intervals and p-values from \code{glm} objects.
 #' @examples
+#' require(dplyr)
+#' require(sjlabelled)
+#'
 #' ## Continuous outcome.
 #' data(birthwt, package = "MASS")
-#' require(dplyr)
-#' birthwt <- mutate(birthwt,
-#'   smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
-#'   Race = factor(race > 1, labels = c("White", "Non-white")))
+#' birthwt <- birthwt %>%
+#'   mutate(
+#'     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
+#'     race = factor(race, labels = c("White", "African American", "Other"))
+#'   ) %>%
+#'   var_labels(
+#'     bwt = 'Birth weight (g)',
+#'     smoke = 'Smoking status',
+#'     race = 'Race'
+#'   )
 #'
-#' model_norm <- glm(bwt ~ smoke + race, data = birthwt)
-#' glm_coef(model_norm)
+#' model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 #'
-#' model_norm %>%
-#'   glm_coef(labels=c("Constant", "Smoker vs Non-smoker", "Non-white vs White"))
+#' glm_coef(model_norm, labels = model_labels(model_norm))
 #'
 #' ## Logistic regression.
 #' data(diet, package = "Epi")
@@ -54,29 +107,7 @@ round_pval <- function(pval)
 #'   glm_coef(labels = c("Constant", "Fibre intake (g/day)"))
 #'
 #' model_binom %>%
-#' glm_coef(labels = c("Constant", "Fibre intake (g/day)"), type = "ext")
-#'
-#' ## Poisson regression.
-#' library(MASS)
-#' data(quine)
-#' levels(quine$Eth) <- list(White = "N", Aboriginal = "A")
-#' levels(quine$Sex) <- list(Male = "M", Female = "F")
-#' model_pois <- glm(Days ~ Eth + Sex + Age, family = poisson, data = quine)
-#'
-#' model_pois %>%
-#'   glm_coef()
-#'
-#' deviance(model_pois) / df.residual(model_pois) # to check for overdispersion
-#'
-#' model_negbin <- glm.nb(Days ~ Eth + Sex + Age, data = quine)
-#' unadj <- glm_coef(model_negbin,
-#'                   labels=c("Constant",
-#'                   "Race: Aboriginal/White",
-#'                   "Sex: Female/Male",
-#'                   "F1/Primary",
-#'                   "F2/Primary",
-#'                   "F3/Primary"))
-#' unadj # Not-adjusted for multiple comparisons
+#'   glm_coef(labels = c("Constant", "Fibre intake (g/day)"), type = "ext")
 #'
 #' ## For more examples, please read the Vignette on Regression.
 glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TRUE,
@@ -111,7 +142,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(coeff.df) <- labels
     }
-    coeff.df
+    tibble::rownames_to_column(coeff.df, var = "Parameter")
   } else if (class(model)[1] == "multinom") {
     n.mod <- length(rownames(mod$coefficients))
     if (type == "cond") {
@@ -189,7 +220,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "clogit") {
     mod.coef <- mod$coefficients
     or.low <- exp(mod.coef[, 1] - mod.coef[, 3] * zcrit)
@@ -211,7 +242,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "survreg") {
     mod.coef <- mod$table
     hc <- sandwich::vcovHAC(model)
@@ -246,7 +277,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "coxph") {
     mod.coef <- mod$coefficients
     or.low <- exp(mod.coef[, 1] - mod.coef[, 3] * zcrit)
@@ -269,7 +300,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "gee" & (family(model)$family == "binomial" | family(model)$family ==
                                          "poisson") | family(model)$family == "quasi") {
     mod <- mod$coefficients
@@ -305,7 +336,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "gee" & family(model)$family == "gaussian") {
     mod <- mod$coefficients
     n <- nrow(mod)
@@ -335,7 +366,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "glmerMod" & (family(model)$family == "binomial" |
                                               family(model)$family == "poisson")) {
     mod <- mod$coefficients
@@ -364,7 +395,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "glmerMod" & family(model)$family == "gaussian") {
     mod <- mod$coefficients
     n <- nrow(mod)
@@ -388,7 +419,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   } else {
     if (class(model)[1] != "glm" & class(model)[1] != "negbin" & class(model)[1] !=
         "lm")
@@ -469,6 +500,6 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = TR
     } else {
       rownames(out.df) <- labels
     }
-    out.df
+    tibble::rownames_to_column(out.df, var = "Parameter")
   }
 }

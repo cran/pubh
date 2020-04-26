@@ -13,11 +13,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = NA, size = "small", 
-                      message = FALSE, warning = FALSE)
-```
-
 # Introduction
 
 ## Rationale for the package
@@ -91,20 +86,30 @@ In Public Health and Epidemiology it is common to have a categorical outcome and
 
 The `estat` function from the `pubh` package displays descriptive statistics of continuous outcomes and like `mytable`, it can use *labels* to display nice tables. `estat`. As a way to aid in the understanding of the variability, `estat` displays also the relative dispersion (coefficient of variation) which is of particular interest for comparing variances between groups (factors).
 
-Some examples. We start by loading packages as suggested in the Template of this package.
+Some examples. We start by loading packages.
 
-```{r, message=FALSE}
+```{r message=FALSE, results='hide'}
+rm(list = ls())
+library(car)
+library(broom)
 library(kableExtra)
 library(tidyverse)
+library(ggfortify)
 library(mosaic)
+library(huxtable)
+library(jtools)
 library(latex2exp)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
+library(sjmisc)
 
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
 theme_update(legend.position = "top")
-options(knitr.table.format = 'pandoc')
+# options('huxtable.knit_print_df' = FALSE)
+options('huxtable.knit_print_df_theme' = theme_article)
+options('huxtable.autoformat_number_format' = list(numeric = "%5.2f"))
+knitr::opts_chunk$set(collapse = TRUE, comment = NA)
 ```
 
 We will use a data set about a study of onchocerciasis in Sierra Leone.
@@ -118,8 +123,7 @@ A two-by-two contingency table:
 
 ```{r}
 Oncho %>%
-  cross_tab(mf ~ area) %>%
-  kable
+  cross_tab(mf ~ area)
 ```
 
 Table with all descriptive statistics except `id`:
@@ -127,8 +131,7 @@ Table with all descriptive statistics except `id`:
 ```{r}
 Oncho %>%
   select(- id) %>%
-  cross_tab(mf ~ .) %>%
-  kable
+  cross_tab(mf ~ .)
 ```
 
 Next, we use a data set about blood counts of T cells from patients in remission from Hodgkin's disease or in remission from disseminated malignancies. We generate the new variable `Ratio` and add labels to the variables.
@@ -147,8 +150,7 @@ Descriptive statistics for CD4+ T cells:
 
 ```{r}
 Hodgkin %>%
-  estat(~ CD4) %>%
-  kable
+  estat(~ CD4)
 ```
 
 In the previous code, the left-hand side of the formula is empty as it's the case when working with only one variable.
@@ -165,16 +167,14 @@ For example:
 
 ```{r}
 Hodgkin %>%
-  estat(~ Ratio|Group) %>%
-  kable()
+  estat(~ Ratio|Group)
 ```
 
 As before, we can report a table of descriptive statistics for all variables in the data set:
 
 ```{r}
 Hodgkin %>%
-  cross_tab(Group ~ .) %>%
-  kable()
+  cross_tab(Group ~ .)
 ```
 
 
@@ -255,7 +255,8 @@ birthwt <- birthwt %>%
     ) %>%
   var_labels(
     bwt = 'Birth weight (g)',
-    smoke = 'Smoking status'
+    smoke = 'Smoking status',
+    race = 'Race',
   )
 ```
 
@@ -323,12 +324,9 @@ For simplicity, here we show the analysis of the linear model of smoking on birt
 
 ```{r}
 model_bwt <- lm(bwt ~ smoke + race, data = birthwt)
+
 model_bwt %>%
-  glm_coef(labels = c("Constant",
-                      "Smoker vs Non smoker",
-                      "African American vs White",
-                      "Other vs White")) %>%
-  kable(align = "r")
+  glm_coef(labels = model_labels(model_bwt))
 ```
 
 Similar results can be obtained with the function `tab_model` from the `sjPlot` package. 
@@ -351,32 +349,20 @@ Some advantages of `tab_model` over `glm_coef` are:
 - It can display more than one model on the same output.
 - Tables are more aesthetically appealing.
 
-```{r, eval = FALSE, echo = FALSE}
-model_bwt %>%
-  glm_coef(model_bwt, 
-           labels = c(
-             "Constant",
-             "Smoking: smoker - non-smoker",
-             "Race: African American - White",
-             "Race: Other - White")
-           ) %>%
-  kable()
-```
-
 In the previous table of coefficients confidence intervals and p-values for race had not been adjusted for multiple comparisons. We use functions from the `emmeans` package to make the corrections.
 
 ```{r}
-multiple(model_bwt, "race" )$df
+multiple(model_bwt, ~ race)$df
 ```
 
 ```{r}
-multiple(model_bwt, "race" )$fig_ci %>%
-  gf_labs(y = "Race", x = get_label(birthwt$bwt))
+multiple(model_bwt, ~ race)$fig_ci %>%
+  gf_labs(x = "Difference in birth weights (g)")
 ```
 
 ```{r}
-multiple(model_bwt, "race" )$fig_pval %>%
-  gf_labs(y = "Race")
+multiple(model_bwt, ~ race)$fig_pval %>%
+  gf_labs(y = " ")
 ```
 
 
@@ -393,15 +379,14 @@ Let's say we want to look at the effect of ibuprofen on preventing death in pati
 
 ```{r}
 data(Bernard)
-kable(head(Bernard))
+head(Bernard)
 ```
 
 Let's look at the table:
 
 ```{r}
 Bernard %>%
-  cross_tab(treat ~ fate) %>%
-  kable() 
+  cross_tab(treat ~ fate)
 ```
 
 For `epi.2by2` we need to provide the table of counts in the correct order, so we would type something like:
@@ -438,6 +423,7 @@ Example: effect of eating chocolate ice cream on being ill by sex from the `oswe
 
 ```{r}
 data(oswego, package = "epitools")
+
 oswego <- oswego %>%
   mutate(
     ill = factor(ill, labels = c("No", "Yes")),
@@ -455,8 +441,7 @@ First we look at the cross-tabulation:
 
 ```{r}
 oswego %>%
-  cross_tab(ill ~ sex + chocolate.ice.cream) %>%
-  kable()
+  cross_tab(ill ~ sex + chocolate.ice.cream, na_include = TRUE)
 ```
 
 ```{r}
@@ -472,8 +457,7 @@ Example: An international case-control study to test the hypothesis that breast 
 ```{r}
 data(Oncho)
 
-odds_trend(mf ~ agegrp, data = Oncho, angle = 0, hjust = 0.5)$fig %>%
-  gf_path()
+odds_trend(mf ~ agegrp, data = Oncho, angle = 0, hjust = 0.5)$fig
 ```
 
 ## Diagnostic tests
