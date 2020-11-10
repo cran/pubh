@@ -1,6 +1,6 @@
 Package: pubh
 Title: A Toolbox for Public Health and Epidemiology
-Version: 1.1.16
+Version: 1.1.18
 Authors@R: c(
     person("Josie", "Athens", email = "josie.athens@otago.ac.nz", role = c("aut", "cre")),
     person("Frank", "Harell", email = "f.harrell@vanderbilt.edu", role = "ctb"),
@@ -31,10 +31,10 @@ VignetteBuilder: knitr
 URL: https://github.com/josie-athens/pubh
 BugReports: https://github.com/josie-athens/pubh/issues
 NeedsCompilation: no
-Packaged: 2020-07-06 22:06:45 UTC; josie
+Packaged: 2020-11-09 23:04:19 UTC; josie
 Author: Josie Athens [aut, cre],
   Frank Harell [ctb],
   John Fox [ctb],
   R-Core [ctb]
 Repository: CRAN
-Date/Publication: 2020-07-07 09:10:02 UTC
+Date/Publication: 2020-11-10 05:20:02 UTC
