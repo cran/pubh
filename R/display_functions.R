@@ -4,9 +4,9 @@
 #'
 #' \code{round_pval} is an internal function called by \code{glm_coef} to round p-values from model coefficients.
 #' @param pval vector of p-values, numeric.
-round_pval <- function(pval)
-{
-	res <- ifelse(pval < 0.001, "< 0.001", round(pval, 3))
+#' @export
+round_pval <- function(pval) {
+  res <- ifelse(pval < 0.001, "< 0.001", round(pval, 3))
 }
 
 #' Using labels as coefficient names in tables of coefficients.
@@ -27,27 +27,28 @@ round_pval <- function(pval)
 #'     race = factor(race, labels = c("White", "African American", "Other"))
 #'   ) %>%
 #'   var_labels(
-#'     bwt = 'Birth weight (g)',
-#'     smoke = 'Smoking status',
-#'     race = 'Race'
+#'     bwt = "Birth weight (g)",
+#'     smoke = "Smoking status",
+#'     race = "Race"
 #'   )
 #'
 #' model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 #'
 #' glm_coef(model_norm, labels = model_labels(model_norm))
 #'
-#' model_int = lm(formula = bwt ~ smoke*race, data = birthwt)
+#' model_int <- lm(formula = bwt ~ smoke * race, data = birthwt)
 #'
 #' model_int %>%
 #'   glm_coef(labels = c(
 #'     model_labels(model_int),
 #'     "Smoker: African American",
 #'     "Smoker: Other"
-#'  ))
+#'   ))
+#' @export
 model_labels <- function(model, intercept = TRUE) {
   tl <- sjlabelled::term_labels(model, prefix = "label")
   rn <- glm_coef(model)$Parameter
-  if(intercept == TRUE) {
+  if (intercept == TRUE) {
     labs <- c("Constant", tl[tidyselect::vars_select(names(tl), tidyselect::matches(rn))])
   } else {
     labs <- tl[tidyselect::vars_select(names(tl), tidyselect::matches(rn))]
@@ -90,9 +91,9 @@ model_labels <- function(model, intercept = TRUE) {
 #'     race = factor(race, labels = c("White", "African American", "Other"))
 #'   ) %>%
 #'   var_labels(
-#'     bwt = 'Birth weight (g)',
-#'     smoke = 'Smoking status',
-#'     race = 'Race'
+#'     bwt = "Birth weight (g)",
+#'     smoke = "Smoking status",
+#'     race = "Race"
 #'   )
 #'
 #' model_norm <- lm(bwt ~ smoke + race, data = birthwt)
@@ -107,34 +108,38 @@ model_labels <- function(model, intercept = TRUE) {
 #'
 #' model_binom %>%
 #'   glm_coef(labels = c("Constant", "Fibre intake (g/day)"), type = "ext")
-#'
-#' ## For more examples, please read the Vignette on Regression.
+#' @export
 glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FALSE,
                      type = "cond", exp_norm = FALSE) {
-  if (type != "cond" & type != "ext")
+  if (type != "cond" & type != "ext") {
     stop("Option type not supported")
+  }
   mod <- summary(model)
   n <- nrow(mod)
   conf.int <- 1 - alpha
-  zcrit <- qnorm((1 + conf.int)/2)
+  zcrit <- qnorm((1 + conf.int) / 2)
   if (class(model)[1] == "clm" | class(model)[1] == "polr") {
     int.low <- exp(mod$coefficients[, 1] - mod$coefficients[, 2] * zcrit)
     int.up <- exp(mod$coefficients[, 1] + mod$coefficients[, 2] * zcrit)
     estim <- mod$coefficients[, 1]
     coeff <- exp(estim)
     coeff.error <- mod$coefficients[, 2]
-    zval <- mod$coefficients[, 1]/mod$coefficients[, 2]
+    zval <- mod$coefficients[, 1] / mod$coefficients[, 2]
     pval <- round_pval((1 - pnorm(abs(zval))) * 2)
     if (type == "cond") {
-      coeff_ci <- paste0(round(coeff, digits), " (", round(int.low, digits),
-                         ", ", round(int.up, digits), ")")
+      coeff_ci <- paste0(
+        round(coeff, digits), " (", round(int.low, digits),
+        ", ", round(int.up, digits), ")"
+      )
       coeff.df <- data.frame(coeff_ci, pval)
       names(coeff.df) <- c("Ordinal OR", "Pr(>|Z|)")
     } else {
       coeff_ci <- round(data.frame(coeff, int.low, int.up, coeff.error), digits)
       coeff.df <- data.frame(coeff_ci, pval)
-      names(coeff.df) <- c("Ordinal OR", "Lower CI", "Upper CI", "Std. Error",
-                           "Pr(>|Z|)")
+      names(coeff.df) <- c(
+        "Ordinal OR", "Lower CI", "Upper CI", "Std. Error",
+        "Pr(>|Z|)"
+      )
     }
     if (is.null(labels)) {
       rownames(coeff.df) <- rownames(coeff.df)
@@ -151,10 +156,12 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
         modse <- mod$standard.errors[i, ]
         low <- exp(mod$coefficients[i, ] - modse * zcrit)[-1]
         up <- exp(mod$coefficients[i, ] + modse * zcrit)[-1]
-        zval <- est/modse
+        zval <- est / modse
         pval <- round_pval((1 - pnorm(abs(zval))) * 2)[-1]
-        back_ci <- paste0(round(back, digits), " (", round(low, digits),
-                          ", ", round(up, digits), ")")
+        back_ci <- paste0(
+          round(back, digits), " (", round(low, digits),
+          ", ", round(up, digits), ")"
+        )
         df <- data.frame(back_ci, pval)
         colnames(df) <- c("Multinomial OR", "Pr(>|z|)")
         if (is.null(labels)) {
@@ -178,13 +185,17 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
         low[1] <- mod$coefficients[i, 1] - modse[1] * zcrit
         up <- exp(mod$coefficients[i, ] + modse * zcrit)
         up[1] <- mod$coefficients[i, 1] + modse[1] * zcrit
-        zval <- est/modse
+        zval <- est / modse
         pval <- round_pval((1 - pnorm(abs(zval))) * 2)
         df <- round(cbind(back, low, up, zval), digits)
         df <- data.frame(df, pval)
-        colnames(df) <- c("Multinomial OR", paste("lower", 100 - 100 * alpha,
-                                                  "ci", sep = ""), paste("upper", 100 - 100 * alpha, "ci", sep = ""),
-                          "z value", "Pr(>|z|)")
+        colnames(df) <- c(
+          "Multinomial OR", paste("lower", 100 - 100 * alpha,
+            "ci",
+            sep = ""
+          ), paste("upper", 100 - 100 * alpha, "ci", sep = ""),
+          "z value", "Pr(>|z|)"
+        )
         if (is.null(labels)) {
           rownames(df) <- colnames(mod$coefficients)
         } else {
@@ -204,15 +215,19 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     up <- estim + mod[, 2] * zcrit
     stats <- mod[, 2:4]
     if (type == "cond") {
-      estim_ci <- paste0(round(estim, digits), " (", round(low, digits), ", ",
-                         round(up, digits), ")")
+      estim_ci <- paste0(
+        round(estim, digits), " (", round(low, digits), ", ",
+        round(up, digits), ")"
+      )
       out.df <- data.frame(estim_ci, round_pval(mod[, 5]))
       names(out.df) <- c("Coefficient", "Pr(>|t|)")
     } else {
       out.df <- round(data.frame(estim, low, up, stats), digits)
       out.df <- data.frame(out.df, round_pval(mod[, 5]))
-      names(out.df) <- c("Coeff", "Lower CI", "Upper CI", "SE", "DF", "t value",
-                         "Pr(>|t|)")
+      names(out.df) <- c(
+        "Coeff", "Lower CI", "Upper CI", "SE", "DF", "t value",
+        "Pr(>|t|)"
+      )
     }
     if (is.null(labels)) {
       rownames(out.df) <- rownames(out.df)
@@ -228,15 +243,19 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     up <- mod[, 3]
     stats <- mod2[, 2:4]
     if (type == "cond") {
-      estim_ci <- paste0(round(estim, digits), " (", round(low, digits), ", ",
-                         round(up, digits), ")")
+      estim_ci <- paste0(
+        round(estim, digits), " (", round(low, digits), ", ",
+        round(up, digits), ")"
+      )
       out.df <- data.frame(estim_ci, round_pval(mod[, 6]))
       names(out.df) <- c("Coefficient", "Pr(>|t|)")
     } else {
       out.df <- round(data.frame(estim, low, up, stats), digits)
       out.df <- data.frame(out.df, round_pval(mod[, 6]))
-      names(out.df) <- c("Coeff", "Lower CI", "Upper CI", "SE", "t value", "DF",
-                         "Pr(>|t|)")
+      names(out.df) <- c(
+        "Coeff", "Lower CI", "Upper CI", "SE", "t value", "DF",
+        "Pr(>|t|)"
+      )
     }
     if (is.null(labels)) {
       rownames(out.df) <- rownames(out.df)
@@ -250,8 +269,10 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     or.up <- exp(mod.coef[, 1] + mod.coef[, 3] * zcrit)
     OR <- mod.coef[, 2]
     if (type == "cond") {
-      or_ci <- paste0(round(OR, digits), " (", round(or.low, digits), ", ",
-                      round(or.up, digits), ")")
+      or_ci <- paste0(
+        round(OR, digits), " (", round(or.low, digits), ", ",
+        round(or.up, digits), ")"
+      )
       out.df <- data.frame(or_ci, round_pval(mod.coef[, 5]))
       colnames(out.df) <- c("Odds ratio", "Pr(>|z|)")
     } else {
@@ -281,8 +302,10 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     or.low <- exp(Estimate - mod.coef[, 2] * zcrit)
     or.up <- exp(Estimate + mod.coef[, 2] * zcrit)
     if (type == "cond") {
-      or_ci <- paste0(round(OR, digits), " (", round(or.low, digits), ", ",
-                      round(or.up, digits), ")")
+      or_ci <- paste0(
+        round(OR, digits), " (", round(or.low, digits), ", ",
+        round(or.up, digits), ")"
+      )
       out.df <- data.frame(or_ci, round_pval(mod.coef[, 4]))
       out.df <- out.df[-1, ]
       colnames(out.df) <- c("Survival time ratio", "Pr(>|z|)")
@@ -291,8 +314,10 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
       cis <- round(cis, digits)
       out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
       out.df <- out.df[-1, ]
-      colnames(out.df) <- c("Survival time ratio", "Std. Error", "Lower CI",
-                            "Upper CI", "Pr(>|z|)")
+      colnames(out.df) <- c(
+        "Survival time ratio", "Std. Error", "Lower CI",
+        "Upper CI", "Pr(>|z|)"
+      )
     }
     if (is.null(labels)) {
       labs <- rownames(out.df)
@@ -307,16 +332,20 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     or.up <- exp(mod.coef[, 1] + mod.coef[, 3] * zcrit)
     OR <- mod.coef[, 2]
     if (type == "cond") {
-      or_ci <- paste0(round(OR, digits), " (", round(or.low, digits), ", ",
-                      round(or.up, digits), ")")
+      or_ci <- paste0(
+        round(OR, digits), " (", round(or.low, digits), ", ",
+        round(or.up, digits), ")"
+      )
       out.df <- data.frame(or_ci, round_pval(mod.coef[, 5]))
       colnames(out.df) <- c("Hazard ratio", "Pr(>|z|)")
     } else {
       cis <- data.frame(OR, mod.coef[, 3], or.low, or.up)
       cis <- round(cis, digits)
       out.df <- data.frame(cis, round_pval(mod.coef[, 5]))
-      colnames(out.df) <- c("Hazard ratio", "Std. Error", "Lower CI", "Upper CI",
-                            "Pr(>|z|)")
+      colnames(out.df) <- c(
+        "Hazard ratio", "Std. Error", "Lower CI", "Upper CI",
+        "Pr(>|z|)"
+      )
     }
     if (is.null(labels)) {
       rownames(out.df) <- rownames(out.df)
@@ -325,7 +354,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     }
     tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "gee" & (family(model)$family == "binomial" | family(model)$family ==
-                                         "poisson") | family(model)$family == "quasi") {
+    "poisson") | family(model)$family == "quasi") {
     mod <- mod$coefficients
     n <- nrow(mod)
     estim <- mod[, 1]
@@ -344,15 +373,19 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     up[2:n] <- exp(up[2:n])
     pvals <- (1 - pnorm(abs(my.z))) * 2
     if (type == "cond") {
-      coeff_ci <- paste0(round(coeff, digits), " (", round(low, digits), ", ",
-                         round(up, digits), ")")
+      coeff_ci <- paste0(
+        round(coeff, digits), " (", round(low, digits), ", ",
+        round(up, digits), ")"
+      )
       out.df <- data.frame(coeff_ci, round_pval(pvals))
       names(out.df) <- c("Exp(Coeff)", "Pr(>|z|)")
     } else {
       out.df <- round(data.frame(estim, coeff, low, up, segee), digits)
       out.df <- data.frame(out.df, round_pval(pvals))
-      names(out.df) <- c("Coeff", "Exp(Coeff)", "Lower CI", "Upper CI", "SE",
-                         "Pr(>|z|)")
+      names(out.df) <- c(
+        "Coeff", "Exp(Coeff)", "Lower CI", "Upper CI", "SE",
+        "Pr(>|z|)"
+      )
     }
     if (is.null(labels)) {
       rownames(out.df) <- rownames(out.df)
@@ -375,8 +408,10 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     up <- estim + segee * zcrit
     pvals <- (1 - pnorm(abs(my.z))) * 2
     if (type == "cond") {
-      estim_ci <- paste0(round(estim, digits), " (", round(low, digits), ", ",
-                         round(up, digits), ")")
+      estim_ci <- paste0(
+        round(estim, digits), " (", round(low, digits), ", ",
+        round(up, digits), ")"
+      )
       out.df <- data.frame(estim_ci, round_pval(pvals))
       names(out.df) <- c("Coefficient", "Pr(>|z|)")
     } else {
@@ -391,7 +426,7 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     }
     tibble::rownames_to_column(out.df, var = "Parameter")
   } else if (class(model)[1] == "glmerMod" & (family(model)$family == "binomial" |
-                                              family(model)$family == "poisson")) {
+    family(model)$family == "poisson")) {
     mod <- mod$coefficients
     n <- nrow(mod)
     estim <- mod[, 1]
@@ -402,16 +437,20 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     up <- estim + mod[, 2] * zcrit
     up[2:n] <- exp(up[2:n])
     if (type == "cond") {
-      coeff_ci <- paste0(round(coeff, digits), " (", round(low, digits), ", ",
-                         round(up, digits), ")")
+      coeff_ci <- paste0(
+        round(coeff, digits), " (", round(low, digits), ", ",
+        round(up, digits), ")"
+      )
       out.df <- data.frame(coeff_ci, round_pval(mod[, 4]))[-1, ]
       names(out.df) <- c("Exp(Coeff)", "Pr(>|z|)")
     } else {
       stats <- mod[, 2:3]
       out.df <- round(data.frame(estim, coeff, low, up, stats), digits)
       out.df <- data.frame(out.df, round_pval(mod[, 4]))
-      names(out.df) <- c("Coeff", "Exp(Coeff)", "Lower CI", "Upper CI", "SE",
-                         "z value", "Pr(>|z|)")
+      names(out.df) <- c(
+        "Coeff", "Exp(Coeff)", "Lower CI", "Upper CI", "SE",
+        "z value", "Pr(>|z|)"
+      )
     }
     if (is.null(labels)) {
       rownames(out.df) <- rownames(out.df)
@@ -426,16 +465,20 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     low <- estim - mod[, 2] * zcrit
     up <- estim + mod[, 2] * zcrit
     if (type == "cond") {
-      estim_ci <- paste0(round(estim, digits), " (", round(low, digits), ", ",
-                         round(up, digits), ")")
+      estim_ci <- paste0(
+        round(estim, digits), " (", round(low, digits), ", ",
+        round(up, digits), ")"
+      )
       out.df <- data.frame(estim_ci, round_pval(mod[, 4]))
       names(out.df) <- c("Coefficient", "Pr(>|z|)")
     } else {
       stats <- mod[, 2:3]
       out.df <- round(data.frame(estim, low, up, stats), digits)
       out.df <- data.frame(out.df, round_pval(mod[, 4]))
-      names(out.df) <- c("Coeff", "Lower CI", "Upper CI", "SE", "z value",
-                         "Pr(>|z|)")
+      names(out.df) <- c(
+        "Coeff", "Lower CI", "Upper CI", "SE", "z value",
+        "Pr(>|z|)"
+      )
     }
     if (is.null(labels)) {
       rownames(out.df) <- rownames(out.df)
@@ -445,11 +488,12 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
     tibble::rownames_to_column(out.df, var = "Parameter")
   } else {
     if (class(model)[1] != "glm" & class(model)[1] != "negbin" & class(model)[1] !=
-        "lm" & class(model)[1] != "lmerMod")
+      "lm" & class(model)[1] != "lmerMod") {
       stop("Object's class or family error not supported.")
+    }
     if (class(model)[1] == "glm" | class(model)[1] == "negbin" |
-        class(model)[1] == "lm") {
-      tcrit <- qt((1 + conf.int)/2, df.residual(model))
+      class(model)[1] == "lm") {
+      tcrit <- qt((1 + conf.int) / 2, df.residual(model))
       hc <- sandwich::vcovHC(model)
       ct <- lmtest::coeftest(model, vcov = hc)
       if (se_rob == TRUE) {
@@ -463,10 +507,14 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
       ci.up <- mod.coef[, 1] + mod.coef[, 2] * tcrit
       Estimate <- mod.coef[, 1]
       OR <- exp(Estimate)
-      est_ci <- paste0(round(Estimate, digits), " (", round(ci.low, digits),
-                       ", ", round(ci.up, digits), ")")
-      or_ci <- paste0(round(OR, digits), " (", round(or.low, digits), ", ",
-                      round(or.up, digits), ")")
+      est_ci <- paste0(
+        round(Estimate, digits), " (", round(ci.low, digits),
+        ", ", round(ci.up, digits), ")"
+      )
+      or_ci <- paste0(
+        round(OR, digits), " (", round(or.low, digits), ", ",
+        round(or.up, digits), ")"
+      )
       if (family(model)$family == "binomial" & type == "cond") {
         cis <- data.frame(or_ci)
         out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
@@ -475,23 +523,27 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
       if (family(model)$family == "binomial" & type == "ext") {
         cis <- round(data.frame(OR, mod.coef[, 2], or.low, or.up), digits)
         out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
-        colnames(out.df) <- c("Odds ratio", "Std. Error", "Lower CI", "Upper CI",
-                              "Pr(>|z|)")
+        colnames(out.df) <- c(
+          "Odds ratio", "Std. Error", "Lower CI", "Upper CI",
+          "Pr(>|z|)"
+        )
       }
       if ((family(model)$family == "poisson" |
-           class(model)[1] == "negbin" |
-           family(model)$family == "quasipoisson") & type == "cond") {
+        class(model)[1] == "negbin" |
+        family(model)$family == "quasipoisson") & type == "cond") {
         cis <- data.frame(or_ci)
         out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
         colnames(out.df) <- c("Rate ratio", "Pr(>|z|)")
       }
       if ((family(model)$family == "poisson" |
-           class(model)[1] == "negbin" |
-           family(model)$family == "quasipoisson") & type == "ext") {
+        class(model)[1] == "negbin" |
+        family(model)$family == "quasipoisson") & type == "ext") {
         cis <- round(data.frame(OR, mod.coef[, 2], or.low, or.up), digits)
         out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
-        colnames(out.df) <- c("Rate ratio", "Std. Error", "Lower CI", "Upper CI",
-                              "Pr(>|z|)")
+        colnames(out.df) <- c(
+          "Rate ratio", "Std. Error", "Lower CI", "Upper CI",
+          "Pr(>|z|)"
+        )
       }
       if (family(model)$family == "gaussian" & type == "cond") {
         cis <- data.frame(est_ci)
@@ -499,11 +551,15 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
         colnames(out.df) <- c("Coefficient", "Pr(>|t|)")
       }
       if (family(model)$family == "gaussian" & type == "ext") {
-        cis <- round(data.frame(Estimate, mod.coef[, 2], ci.low, ci.up),
-                     digits)
+        cis <- round(
+          data.frame(Estimate, mod.coef[, 2], ci.low, ci.up),
+          digits
+        )
         out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
-        colnames(out.df) <- c("Coefficient", "Std. Error", "Lower CI", "Upper CI",
-                              "Pr(>|t|)")
+        colnames(out.df) <- c(
+          "Coefficient", "Std. Error", "Lower CI", "Upper CI",
+          "Pr(>|t|)"
+        )
       }
       if (family(model)$family == "gaussian" & type == "cond" & exp_norm == TRUE) {
         cis <- data.frame(or_ci)
@@ -511,11 +567,15 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
         colnames(out.df) <- c("Ratio", "Pr(>|t|)")
       }
       if (family(model)$family == "gaussian" & type == "ext" & exp_norm == TRUE) {
-        cis <- round(data.frame(OR, mod.coef[, 2], or.low, or.up),
-                     digits)
+        cis <- round(
+          data.frame(OR, mod.coef[, 2], or.low, or.up),
+          digits
+        )
         out.df <- data.frame(cis, round_pval(mod.coef[, 4]))
-        colnames(out.df) <- c("Ratio", "Std. Error", "Lower CI", "Upper CI",
-                              "Pr(>|t|)")
+        colnames(out.df) <- c(
+          "Ratio", "Std. Error", "Lower CI", "Upper CI",
+          "Pr(>|t|)"
+        )
       }
     }
     if (is.null(labels)) {
@@ -538,7 +598,6 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
 #' @examples
 #' require(dplyr, quietly = TRUE)
 #' require(sjlabelled, quietly = TRUE)
-#' require(huxtable, quietly = TRUE)
 #'
 #' data(birthwt, package = "MASS")
 #' birthwt <- birthwt %>%
@@ -547,22 +606,23 @@ glm_coef <- function(model, digits = 2, alpha = 0.05, labels = NULL, se_rob = FA
 #'     race = factor(race, labels = c("White", "African American", "Other"))
 #'   ) %>%
 #'   var_labels(
-#'     bwt = 'Birth weight (g)',
-#'     smoke = 'Smoking status',
-#'     race = 'Race'
+#'     bwt = "Birth weight (g)",
+#'     smoke = "Smoking status",
+#'     race = "Race"
 #'   )
 #'
 #' model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 #'
 #' model_norm %>%
 #'   glm_coef(labels = model_labels(model_norm)) %>%
-#'   as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-#'   theme_pubh(1) %>%
+#'   as_hux() %>%
+#'   set_align(everywhere, 2:3, "right") %>%
+#'   theme_pubh() %>%
 #'   add_footnote(get_r2(model_norm), font_size = 9)
-get_r2 <- function(model, ...)
-{
+#' @export
+get_r2 <- function(model, ...) {
   r2 <- performance::r2
-  if(class(model)[1] == "lmerMod") {
+  if (class(model)[1] == "lmerMod") {
     res <- paste(
       "Conditional R2 =",
       r2(model, ...)[[1]] %>% round(3),
@@ -570,7 +630,7 @@ get_r2 <- function(model, ...)
       "Marginal R2 =",
       r2(model, ...)[[2]] %>% round(3)
     )
-  } else if(class(model)[1] == "lme") {
+  } else if (class(model)[1] == "lme") {
     res <- paste(
       "Marginal R2 =",
       r2(model, ...)[[2]] %>% round(3)
@@ -584,5 +644,3 @@ get_r2 <- function(model, ...)
   }
   res
 }
-
-#'

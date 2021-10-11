@@ -38,16 +38,19 @@ test or exact Fisher's test;
 \examples{
 ## A case-control study on the effect of alcohol on oesophageal cancer.
 Freq <- c(386, 29, 389, 171)
-status <- gl(2, 1, 4, labels=c("Control", "Case"))
-alcohol <- gl(2, 2, labels=c("0-39", "40+"))
+status <- gl(2, 1, 4, labels = c("Control", "Case"))
+alcohol <- gl(2, 2, labels = c("0-39", "40+"))
 cancer <- data.frame(Freq, status, alcohol)
 cancer <- expand_df(cancer)
 contingency(status ~ alcohol, data = cancer, method = "case.control")
 
 data(Oncho)
-require(moonBook, quietly = TRUE)
+require(dplyr, quietly = TRUE)
 
-mytable(mf ~ area, data = Oncho, show.total = TRUE)
+Oncho \%>\%
+  select(mf, area) \%>\%
+  cross_tbl(by = "mf") \%>\%
+  theme_pubh(2)
 
 Oncho \%>\%
   contingency(mf ~ area)

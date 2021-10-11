@@ -38,11 +38,14 @@ oswego <- oswego \%>\%
     chocolate.ice.cream = "Consumed chocolate ice cream"
   )
 
-require(moonBook, quietly = TRUE)
-mytable(ill ~ sex + chocolate.ice.cream, data = oswego, show.total = TRUE)
+oswego \%>\%
+  select(ill, sex, chocolate.ice.cream) \%>\%
+  tbl_summary() \%>\%
+  cosm_sum() \%>\%
+  theme_pubh()
 
 oswego \%>\%
-  mhor(ill ~ sex/chocolate.ice.cream)
+  mhor(ill ~ sex / chocolate.ice.cream)
 }
 \seealso{
 \link{mh}

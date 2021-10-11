@@ -4,20 +4,20 @@
 ## ----eval=FALSE---------------------------------------------------------------
 #  y ~ x|z, data = my_data
 
+## ----eval=FALSE---------------------------------------------------------------
+#  data %>%
+#    f1(...) %>%
+#    f2(...) %>%
+#    f3(...)
+
 ## ----message=FALSE, results='hide'--------------------------------------------
 rm(list = ls())
-library(car)
-library(broom)
-library(mosaic)
 library(tidyverse)
-library(ggfortify)
-library(huxtable)
+library(rstatix)
 library(jtools)
-library(latex2exp)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
-library(sjmisc)
 
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
 theme_update(legend.position = "top")
@@ -35,8 +35,9 @@ Oncho %>%
     mf = relevel(mf, ref = "Infected")
   ) %>%
   copy_labels(Oncho) %>%
-  cross_tab(mf ~ area) %>%
-  theme_pubh()
+  select(mf, area) %>% 
+  cross_tbl(by = "area") %>%
+  theme_pubh(2)
 
 ## -----------------------------------------------------------------------------
 Oncho %>%
@@ -45,8 +46,8 @@ Oncho %>%
     mf = relevel(mf, ref = "Infected")
   ) %>%
   copy_labels(Oncho) %>%
-  cross_tab(mf ~ area +.) %>%
-  theme_pubh()
+  cross_tbl(by = "area") %>%
+  theme_pubh(2)
 
 ## -----------------------------------------------------------------------------
 data(Hodgkin)
@@ -61,12 +62,12 @@ Hodgkin %>% head()
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
   estat(~ CD4) %>%
-  as_hux() %>% theme_pubh(1)
+  as_hux() %>% theme_pubh()
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
   estat(~ Ratio|Group) %>%
-  as_hux() %>% theme_pubh(1)
+  as_hux() %>% theme_pubh()
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
@@ -74,30 +75,27 @@ Hodgkin %>%
     Group = relevel(Group, ref = "Hodgkin")
   ) %>%
   copy_labels(Hodgkin) %>%
-  cross_tab(Group ~ CD4 + ., method = 2) %>%
-  theme_pubh() %>%
-  add_footnote("Values are medians with interquartile range.")
+  cross_tbl(by = "Group", bold = FALSE) %>%
+  theme_pubh(2) %>%
+  add_footnote("Median (IQR)", font_size = 9)
 
 ## -----------------------------------------------------------------------------
 var.test(Ratio ~ Group, data = Hodgkin)
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
-  qq_plot(~ Ratio|Group) %>%
-  axis_labs()
+  qq_plot(~ Ratio|Group) 
 
 ## -----------------------------------------------------------------------------
 wilcox.test(Ratio ~ Group, data = Hodgkin)
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
-  strip_error(Ratio ~ Group) %>%
-  axis_labs()
+  strip_error(Ratio ~ Group)
 
 ## -----------------------------------------------------------------------------
 Hodgkin %>%
   strip_error(Ratio ~ Group) %>%
-  axis_labs() %>%
   gf_star(x1 = 1, y1 = 4, x2 = 2, y2 = 4.05, y3 = 4.1, "**")
 
 ## -----------------------------------------------------------------------------
@@ -116,50 +114,51 @@ birthwt <- birthwt %>%
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
-  bar_error(bwt ~ smoke) %>%
-  axis_labs()
+  bar_error(bwt ~ smoke)
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
-  qq_plot(~ bwt|smoke) %>%
-  axis_labs()
+  qq_plot(~ bwt|smoke)
 
 ## -----------------------------------------------------------------------------
-t.test(bwt ~ smoke, data = birthwt)
+birthwt %>% 
+  t_test(bwt ~ smoke, detailed = TRUE) %>% 
+  as.data.frame()
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
   bar_error(bwt ~ smoke) %>%
-  axis_labs() %>%
   gf_star(x1 = 1, x2 = 2, y1 = 3400, y2 = 3500, y3 = 3550, "**")
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
   bar_error(bwt ~ smoke, fill = ~ Race) %>%
-  gf_refine(ggsci::scale_fill_jama()) %>%
-  axis_labs()
+  gf_refine(ggsci::scale_fill_jama()) 
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
-  bar_error(bwt ~ smoke|Race) %>%
-  axis_labs()
+  bar_error(bwt ~ smoke|Race)
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
   strip_error(bwt ~ smoke, pch = ~ Race, col = ~ Race) %>%
-  gf_refine(ggsci::scale_color_jama()) %>%
-  axis_labs()
+  gf_refine(ggsci::scale_color_jama())
 
 ## -----------------------------------------------------------------------------
 model_bwt <- lm(bwt ~ smoke + race, data = birthwt)
 
-model_bwt %>%
-  glm_coef(labels = model_labels(model_bwt)) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
+## -----------------------------------------------------------------------------
+model_bwt %>% 
+  tbl_regression() %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_bwt), font_size = 9)
 
 ## -----------------------------------------------------------------------------
-tab_model(model_bwt,  collapse.ci = TRUE)
+model_bwt %>%
+  glm_coef(labels = model_labels(model_bwt)) %>%
+  as_hux() %>% theme_pubh() %>% 
+  set_align(everywhere, 2:3, "right") %>%
+  add_footnote(get_r2(model_bwt), font_size = 9)
 
 ## -----------------------------------------------------------------------------
 multiple(model_bwt, ~ race)$df
@@ -183,8 +182,9 @@ Bernard %>%
     treat = relevel(treat, ref = "Ibuprofen")
   ) %>%
   copy_labels(Bernard) %>%
-  cross_tab(fate ~ treat) %>%
-  theme_pubh()
+  select(fate, treat) %>% 
+  cross_tbl(by = "treat") %>%
+  theme_pubh(2)
 
 ## -----------------------------------------------------------------------------
 dat <- matrix(c(84, 140 , 92, 139), nrow = 2, byrow = TRUE)
@@ -214,22 +214,7 @@ oswego <- oswego %>%
 
 ## -----------------------------------------------------------------------------
 oswego %>%
-  mutate(
-    ill = relevel(ill, ref = "Yes"),
-    chocolate.ice.cream = relevel(chocolate.ice.cream, ref = "Yes")
-  ) %>%
-  copy_labels(oswego) %>%
-  cross_tab(ill ~ sex + chocolate.ice.cream) %>%
-  theme_pubh()
-
-## -----------------------------------------------------------------------------
-oswego %>%
   mhor(ill ~ sex/chocolate.ice.cream)
-
-## -----------------------------------------------------------------------------
-data(Oncho)
-
-odds_trend(mf ~ agegrp, data = Oncho, angle = 0, hjust = 0.5)$fig
 
 ## -----------------------------------------------------------------------------
 Freq <- c(1739, 8, 51, 22)

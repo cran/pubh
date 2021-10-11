@@ -68,6 +68,25 @@ y ~ x|z, data = my_data
 
 Where `y` is the outcome or response variable, `x` is the exposure or predictor of interest, `z` is the stratification variable (a factor) and `my_data` specifies the name of the data frame where `x`, `y` and `z` can be found.
 
+## Pipes and the `tidyverse`
+
+The `tidyverse` has become now the standard in data manipulation in `R`. The use of the pipe function `%>%` from `magrittr` allows for cleaner code. The principle of pipes is to change the paradigm in coding. In standard codding, when many functions are used, one goes from inner parenthesis to outer ones.
+
+For example if we have three functions, a common syntax would look like:
+
+`f3(f2(f1(..., data), ...), ...)`
+
+With pipes, however, the code reads top to bottom and left to right:
+
+```{r eval=FALSE}
+data %>%
+  f1(...) %>% 
+  f2(...) %>% 
+  f3(...)
+```
+
+Most of the functions from `pubh` are compatible with pipes and the `tidyverse`.
+
 ## Contributions of the `pubh` package
 
 The main contributions of the `pubh` package to students and professionals from the disciplines of Epidemiology and Public Health are:
@@ -76,32 +95,26 @@ The main contributions of the `pubh` package to students and professionals from 
 2. A function, `glm_coef` that displays coefficients from most common regression analysis in a way that can be easy interpreted and used for publications.
 3. Integration with the `ggformula` package, introducing plotting functions with a relatively simple syntax.
 4. Integration with the most common epidemiological analysis, using the standard formula syntax explained in the previous section.
+5. Integration with the `gtsummary` and `huxtable` packages. The `pubh` use huxtables as standard as they can be easily exported to *html*, *pdf* and *doc* files when *knitting*. Tables of descriptive statistics and of regression coefficients are generated through functions from `gtsummary` and then converted to `huxtable` objects with convenient cosmetics.
 
 # Descriptive statistics
 
-Many options currently exists for displaying descriptive statistics. I recommend the function `mytable` from the `moonBook` package for constructing tables of descriptive statistics where results don't need to be stratified. 
+Many options currently exists for displaying descriptive statistics. I recommend the function `tbl_summary` from the `gtsummary` package for constructing tables of descriptive statistics where results don't need to be stratified. 
 
-In Public Health and Epidemiology it is common to have a categorical outcome and thus, report descriptive statistics stratified by the outcome. Package `pubh` introduces the function `cross_tab` as a wrapper to functions from `mytable`. The idea is to construct these tables, using formulas, in a simple way.
+In Public Health and Epidemiology it is common to be interested on comparing cohorts, categorical variables considered as exposure of interest. The most classic example are randomised control trials where we want to compare treatment versus control cohorts. Package `pubh` introduces the function `cross_tbl` as a wrapper to `tbl_summary` from `gtsummary`. The idea is to construct these tables, in a simple way and convert them to huxtables.
 
-
-The `estat` function from the `pubh` package displays descriptive statistics of continuous outcomes and like `mytable`, it can use *labels* to display nice tables. `estat`. As a way to aid in the understanding of the variability, `estat` displays also the relative dispersion (coefficient of variation) which is of particular interest for comparing variances between groups (factors).
+The `estat` function from the `pubh` package displays descriptive statistics of continuous outcomes; it can use *labels* to display nice tables. As a way to aid in the understanding of the variability, `estat` displays also the relative dispersion (coefficient of variation) which is of particular interest for comparing variances between groups (factors).
 
 Some examples. We start by loading packages.
 
 ```{r message=FALSE, results='hide'}
 rm(list = ls())
-library(car)
-library(broom)
-library(mosaic)
 library(tidyverse)
-library(ggfortify)
-library(huxtable)
+library(rstatix)
 library(jtools)
-library(latex2exp)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
-library(sjmisc)
 
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
 theme_update(legend.position = "top")
@@ -125,8 +138,9 @@ Oncho %>%
     mf = relevel(mf, ref = "Infected")
   ) %>%
   copy_labels(Oncho) %>%
-  cross_tab(mf ~ area) %>%
-  theme_pubh()
+  select(mf, area) %>% 
+  cross_tbl(by = "area") %>%
+  theme_pubh(2)
 ```
 
 Table with all descriptive statistics except `id` and `mfload`:
@@ -138,8 +152,8 @@ Oncho %>%
     mf = relevel(mf, ref = "Infected")
   ) %>%
   copy_labels(Oncho) %>%
-  cross_tab(mf ~ area +.) %>%
-  theme_pubh()
+  cross_tbl(by = "area") %>%
+  theme_pubh(2)
 ```
 
 Next, we use a data set about blood counts of T cells from patients in remission from Hodgkin's disease or in remission from disseminated malignancies. We generate the new variable `Ratio` and add labels to the variables.
@@ -160,7 +174,7 @@ Descriptive statistics for CD4+ T cells:
 ```{r}
 Hodgkin %>%
   estat(~ CD4) %>%
-  as_hux() %>% theme_pubh(1)
+  as_hux() %>% theme_pubh()
 ```
 
 In the previous code, the left-hand side of the formula is empty as it's the case when working with only one variable.
@@ -178,7 +192,7 @@ For example:
 ```{r}
 Hodgkin %>%
   estat(~ Ratio|Group) %>%
-  as_hux() %>% theme_pubh(1)
+  as_hux() %>% theme_pubh()
 ```
 
 As before, we can report a table of descriptive statistics for all variables in the data set:
@@ -189,9 +203,9 @@ Hodgkin %>%
     Group = relevel(Group, ref = "Hodgkin")
   ) %>%
   copy_labels(Hodgkin) %>%
-  cross_tab(Group ~ CD4 + ., method = 2) %>%
-  theme_pubh() %>%
-  add_footnote("Values are medians with interquartile range.")
+  cross_tbl(by = "Group", bold = FALSE) %>%
+  theme_pubh(2) %>%
+  add_footnote("Median (IQR)", font_size = 9)
 ```
 
 
@@ -209,8 +223,7 @@ What about normality? We can look at the QQ-plots against the standard Normal di
 
 ```{r}
 Hodgkin %>%
-  qq_plot(~ Ratio|Group) %>%
-  axis_labs()
+  qq_plot(~ Ratio|Group) 
 ```
 
 Let's say we choose a non-parametric test to compare the groups:
@@ -230,11 +243,8 @@ For our current example:
 
 ```{r}
 Hodgkin %>%
-  strip_error(Ratio ~ Group) %>%
-  axis_labs()
+  strip_error(Ratio ~ Group)
 ```
-
-In the previous code, `axis_labs` applies labels from labelled data to the axis.
 
 The error bars represent 95% confidence intervals around mean values.
 
@@ -256,7 +266,6 @@ In our current example:
 ```{r}
 Hodgkin %>%
   strip_error(Ratio ~ Group) %>%
-  axis_labs() %>%
   gf_star(x1 = 1, y1 = 4, x2 = 2, y2 = 4.05, y3 = 4.1, "**")
 ```
 
@@ -280,22 +289,22 @@ birthwt <- birthwt %>%
 
 ```{r}
 birthwt %>%
-  bar_error(bwt ~ smoke) %>%
-  axis_labs()
+  bar_error(bwt ~ smoke)
 ```
 
 Quick normality check:
 
 ```{r}
 birthwt %>%
-  qq_plot(~ bwt|smoke) %>%
-  axis_labs()
+  qq_plot(~ bwt|smoke)
 ```
 
 The (unadjusted) $t$-test:
 
 ```{r}
-t.test(bwt ~ smoke, data = birthwt)
+birthwt %>% 
+  t_test(bwt ~ smoke, detailed = TRUE) %>% 
+  as.data.frame()
 ```
 
 The final plot with annotation to highlight statistical difference (unadjusted):
@@ -303,72 +312,57 @@ The final plot with annotation to highlight statistical difference (unadjusted):
 ```{r}
 birthwt %>%
   bar_error(bwt ~ smoke) %>%
-  axis_labs() %>%
   gf_star(x1 = 1, x2 = 2, y1 = 3400, y2 = 3500, y3 = 3550, "**")
 ```
-
 
 Both `strip_error` and `bar_error` can generate plots stratified by a third variable, for example:
 
 ```{r}
 birthwt %>%
   bar_error(bwt ~ smoke, fill = ~ Race) %>%
-  gf_refine(ggsci::scale_fill_jama()) %>%
-  axis_labs()
+  gf_refine(ggsci::scale_fill_jama()) 
 ```
 
 ```{r}
 birthwt %>%
-  bar_error(bwt ~ smoke|Race) %>%
-  axis_labs()
+  bar_error(bwt ~ smoke|Race)
 ```
 
 
 ```{r}
 birthwt %>%
   strip_error(bwt ~ smoke, pch = ~ Race, col = ~ Race) %>%
-  gf_refine(ggsci::scale_color_jama()) %>%
-  axis_labs()
+  gf_refine(ggsci::scale_color_jama())
 ```
 
 # Regression models
 
-The `pubh` package includes the function `glm_coef` for displaying coefficients from regression models and the function `multiple` to help in the visualisation of multiple comparisons. 
-
-> **Note:** Please read the vignette on **Regression Examples** for a more comprehensive use of `glm_coef`.
+The `pubh` package includes the function `cosm_reg`, which adds some cosmetics to objects generated by `tbl_regression` and `huxtable`. The function `multiple` helps in the analysis and visualisation of multiple comparisons. 
 
 For simplicity, here we show the analysis of the linear model of smoking on birth weight, adjusting by race (and not by other potential confounders).
 
 ```{r}
 model_bwt <- lm(bwt ~ smoke + race, data = birthwt)
+```
 
-model_bwt %>%
-  glm_coef(labels = model_labels(model_bwt)) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
+```{r}
+model_bwt %>% 
+  tbl_regression() %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_bwt), font_size = 9)
 ```
 
-Similar results can be obtained with the function `tab_model` from the `sjPlot` package. 
+Similar results can be obtained with the function `glm_coef`. 
 
 ```{r}
-tab_model(model_bwt,  collapse.ci = TRUE)
+model_bwt %>%
+  glm_coef(labels = model_labels(model_bwt)) %>%
+  as_hux() %>% theme_pubh() %>% 
+  set_align(everywhere, 2:3, "right") %>%
+  add_footnote(get_r2(model_bwt), font_size = 9)
 ```
 
-
-Some advantages of `glm_coef` over `tab_model` are:
-
-- Script documents can be knitted to Word and $\LaTeX$ (besides HTML).
-- Uses robust standard errors by default. The option to not use robust standard errors is part of the arguments.
-- Recognises some type of models that `tab_model` does not recognise.
-
-Some advantages of `tab_model` over `glm_coef` are:
-
-- Recognises labels from variables and use those labels to display the table.
-- Includes some statistics about the model.
-- It can display more than one model on the same output.
-- Tables are more aesthetically appealing.
-
-In the previous table of coefficients confidence intervals and p-values for race had not been adjusted for multiple comparisons. We use functions from the `emmeans` package to make the corrections.
+In the last table of coefficients confidence intervals and p-values for levels of race are not adjusted for multiple comparisons. We can use functions from the `emmeans` package to make the corrections.
 
 ```{r}
 multiple(model_bwt, ~ race)$df
@@ -410,8 +404,9 @@ Bernard %>%
     treat = relevel(treat, ref = "Ibuprofen")
   ) %>%
   copy_labels(Bernard) %>%
-  cross_tab(fate ~ treat) %>%
-  theme_pubh()
+  select(fate, treat) %>% 
+  cross_tbl(by = "treat") %>%
+  theme_pubh(2)
 ```
 
 For `epi.2by2` we need to provide the table of counts in the correct order, so we would type something like:
@@ -462,33 +457,9 @@ oswego <- oswego %>%
   )
 ```
 
-First we look at the cross-tabulation:
-
-```{r}
-oswego %>%
-  mutate(
-    ill = relevel(ill, ref = "Yes"),
-    chocolate.ice.cream = relevel(chocolate.ice.cream, ref = "Yes")
-  ) %>%
-  copy_labels(oswego) %>%
-  cross_tab(ill ~ sex + chocolate.ice.cream) %>%
-  theme_pubh()
-```
-
 ```{r}
 oswego %>%
   mhor(ill ~ sex/chocolate.ice.cream)
-```
-
-
-### Odds trend
-
-Example: An international case-control study to test the hypothesis that breast cancer is related to the age that a woman gives childbirth.
-
-```{r}
-data(Oncho)
-
-odds_trend(mf ~ agegrp, data = Oncho, angle = 0, hjust = 0.5)$fig
 ```
 
 ## Diagnostic tests

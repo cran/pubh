@@ -13,10 +13,12 @@
 #' and prevalence of Helicobacter pylori infection in preschool children: population based study.
 #' BMJ 316:665.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Brenner)
 #'
 #' Brenner %>%
-#'   cross_tab(infected ~ ulcer)
+#'   select(infected, ulcer) %>%
+#'   cross_tbl(by = "infected")
 #'
 #' contingency(infected ~ ulcer, data = Brenner, method = "cross.sectional")
 "Brenner"
@@ -34,10 +36,12 @@
 #' evaluation and randomised controlled trial of extracorporeal membrane oxygenation: UK collaborative
 #' trial. Brit Med J 317:911-16.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Roberts)
 #'
 #' Roberts %>%
-#'   cross_tab(survived ~ emo)
+#'   select(survived, emo) %>%
+#'   cross_tbl(by = "survived")
 "Roberts"
 
 #' Breast cancer and age of childbirth.
@@ -52,13 +56,12 @@
 #' }
 #' @source Macmahon, B. et al. (1970). Age at first birth and breast cancer risk. Bull WHO 43, 209-221.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Macmahon)
 #'
 #' Macmahon %>%
-#'   cross_tab(cancer ~ age)
-#'
-#' odds_trend(cancer ~ age, data = Macmahon)$df
-#' odds_trend(cancer ~ age, data = Macmahon)$fig
+#'   select(cancer, age) %>%
+#'   cross_tbl(by = "cancer")
 "Macmahon"
 
 #' Passive smoking in adulthood and cancer risk.
@@ -74,14 +77,14 @@
 #' }
 #' @source Sandler, DP, Everson, RB, Wilcox, AJ (1985). Passive smoking in adulthood and cancer risk. Amer J Epidem, 121: 37-48.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Sandler)
 #'
 #' Sandler %>%
-#'   cross_tab(cancer ~ passive)
+#'   select(cancer, passive) %>%
+#'   cross_tbl(by = "cancer")
 #'
-#' cross_tab(cancer ~ passive + smoke, data = Sandler)
-#'
-#' mhor(cancer ~ smoke/passive, data = Sandler)
+#' mhor(cancer ~ smoke / passive, data = Sandler)
 "Sandler"
 
 #' Smoking and mortality in Whickham, England.
@@ -99,12 +102,19 @@
 #' @source Vittinghoff, E, Glidden, DV, Shiboski, SC and McCulloh, CE (2005) Regression methods in
 #' Biostatistics. Springer.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Vanderpump)
 #'
 #' Vanderpump %>%
-#'   cross_tab(vstatus ~ .)
+#'   select(vstatus, agegrp, smoker) %>%
+#'   tbl_strata(
+#'     strata = smoker,
+#'     .tbl_fun = ~ .x %>%
+#'       tbl_summary(by = agegrp)
+#'   ) %>%
+#'   cosm_sum(bold = TRUE, head_label = " ")
 #'
-#' mhor(vstatus ~ agegrp/smoker, data = Vanderpump)
+#' mhor(vstatus ~ agegrp / smoker, data = Vanderpump)
 "Vanderpump"
 
 #' Oral contraceptives and stroke.
@@ -124,14 +134,18 @@
 #' young women. JAMA 231:718-722.
 #' @source Rothman, KJ (2002) Epidemiology. An Introduction. Oxford University Press.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Rothman)
 #'
-#' cross_tab(stroke ~ oc + ht, data = Rothman)
+#' Rothman %>%
+#'   select(stroke, oc, ht) %>%
+#'   tbl_summary() %>%
+#'   cosm_sum()
 #'
-#' mhor(stroke ~ ht/oc, data = Rothman)
+#' mhor(stroke ~ ht / oc, data = Rothman)
 #'
 #' ## Model with standard interaction term:
-#' model1 <- glm(stroke ~ ht*oc, data = Rothman, family = binomial)
+#' model1 <- glm(stroke ~ ht * oc, data = Rothman, family = binomial)
 #' glm_coef(model1)
 #'
 #' ## Model considering join exposure:
@@ -139,18 +153,20 @@
 #' Rothman$join[Rothman$oc == "Non-user" & Rothman$ht == "Yes"] <- 1
 #' Rothman$join[Rothman$oc == "User" & Rothman$ht == "No"] <- 2
 #' Rothman$join[Rothman$oc == "User" & Rothman$ht == "Yes"] <- 3
-#' Rothman$join <- factor(Rothman$join, labels=c("Unexposed", "Hypertension", "OC user",
-#'                        "OC and hypertension"))
+#' Rothman$join <- factor(Rothman$join, labels = c(
+#'   "Unexposed", "Hypertension", "OC user",
+#'   "OC and hypertension"
+#' ))
 #'
 #' require(sjlabelled, quietly = TRUE)
 #' Rothman$join <- set_label(Rothman$join, label = "Exposure")
 #'
-#' cross_tab(stroke ~ join, data = Rothman)
+#' Rothman %>%
+#'   select(stroke, join) %>%
+#'   cross_tbl(by = "stroke")
 #'
 #' model2 <- glm(stroke ~ join, data = Rothman, family = binomial)
 #' glm_coef(model2)
-#' odds_trend(stroke ~ join, data = Rothman)$df
-#' odds_trend(stroke ~ join, data = Rothman)$fig
 "Rothman"
 
 #' T-cell counts from Hodgkin's disease patients.
@@ -173,23 +189,21 @@
 #'
 #' Hodgkin <- Hodgkin %>%
 #'   mutate(
-#'     Ratio = CD4/CD8
+#'     Ratio = CD4 / CD8
 #'   ) %>%
 #'   var_labels(
 #'     Ratio = "CD4+ / CD8+ T-cells"
 #'   )
 #'
-#' estat(~ Ratio|Group, data = Hodgkin)
+#' estat(~ Ratio | Group, data = Hodgkin)
 #'
 #' Hodgkin %>%
-#'   qq_plot(~ Ratio|Group) %>%
-#'   axis_labs()
+#'   qq_plot(~ Ratio | Group)
 #'
-#' Hodgkin$Ratio <- Hodgkin$CD4/Hodgkin$CD8
-#' estat(~ Ratio|Group, data = Hodgkin)
+#' Hodgkin$Ratio <- Hodgkin$CD4 / Hodgkin$CD8
+#' estat(~ Ratio | Group, data = Hodgkin)
 #'
-#' qq_plot(~ Ratio|Group, data = Hodgkin) %>%
-#' axis_labs()
+#' qq_plot(~ Ratio | Group, data = Hodgkin)
 "Hodgkin"
 
 #' Survival of patients with sepsis.
@@ -211,9 +225,12 @@
 #' @source  Bernard, GR, et al. (1997) The effects of ibuprofen on the physiology and survival of patients
 #' with sepsis, N Engl J Med 336: 912–918.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Bernard)
 #'
-#' cross_tab(fate ~ treat, data = Bernard)
+#' Bernard %>%
+#'   select(fate, treat) %>%
+#'   cross_tbl(by = "fate")
 #'
 #' contingency(fate ~ treat, data = Bernard)
 "Bernard"
@@ -233,8 +250,7 @@
 #' data(Tuzson)
 #'
 #' Tuzson %>%
-#'   gf_point(flexion ~ extension) %>%
-#'   axis_labs()
+#'   gf_point(flexion ~ extension)
 #'
 #' cor.test(~ flexion + extension, data = Tuzson)
 "Tuzson"
@@ -277,8 +293,7 @@
 #' data(Fentress)
 #'
 #' Fentress %>%
-#'   strip_error(pain ~ group) %>%
-#'   axis_labs()
+#'   strip_error(pain ~ group)
 "Fentress"
 
 #' Body weight and plasma volume.
@@ -296,8 +311,7 @@
 #'
 #' Kirkwood %>%
 #'   gf_point(volume ~ weight) %>%
-#'   gf_lm(col = "indianred3", interval = "confidence", fill = "indianred3") %>%
-#'   axis_labs()
+#'   gf_lm(col = "indianred3", interval = "confidence", fill = "indianred3")
 "Kirkwood"
 
 #' Onchocerciasis in Sierra Leone.
@@ -318,10 +332,12 @@
 #' a comparison of forest and savannah villages. Trans Roy Soc Trop Med Hyg 82: 595-600.
 #' @source Kirkwood, BR and Sterne, JAC (2003) Essential Medical Statistics. Second Edition. Blackwell.
 #' @examples
+#' require(dplyr, quietly = TRUE)
 #' data(Oncho)
 #'
-#' odds_trend(mf ~ agegrp, data = Oncho)$df
-#' odds_trend(mf ~ agegrp, data = Oncho)$fig
+#' Oncho %>%
+#'   select(mf, agegrp) %>%
+#'   cross_tbl(by = "mf")
 "Oncho"
 
 #' RCT on the treatment of epilepsy.
@@ -356,7 +372,9 @@
 #'
 #' require(lme4, quietly = TRUE)
 #' model_glmer <- glmer(count ~ treat + base + I(age - mean(age, na.rm = TRUE)) +
-#'                  (1|id), data = epilepsy, family = poisson)
-#' glm_coef(model_glmer, labels = c("Treatment (Prograbide/Control)",
-#'                                "Baseline count", "Age (years)"))
+#'   (1 | id), data = epilepsy, family = poisson)
+#' glm_coef(model_glmer, labels = c(
+#'   "Treatment (Prograbide/Control)",
+#'   "Baseline count", "Age (years)"
+#' ))
 "Thall"

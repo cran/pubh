@@ -1,17 +1,13 @@
 ## ----message=FALSE, results = 'hide'------------------------------------------
 rm(list = ls())
-library(car)
-library(broom)
-library(mosaic)
 library(tidyverse)
-library(ggfortify)
-library(huxtable)
+library(rstatix)
+library(parameters)
+library(performance)
 library(jtools)
-library(latex2exp)
 library(pubh)
 library(sjlabelled)
 library(sjPlot)
-library(sjmisc)
 
 theme_set(sjPlot::theme_sjplot2(base_size = 10))
 theme_update(legend.position = "top")
@@ -34,25 +30,12 @@ birthwt <- birthwt %>%
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
-  group_by(race, smoke) %>%
-  summarise(
-    n = n(),
-    Mean = mean(bwt, na.rm = TRUE),
-    SD = sd(bwt, na.rm = TRUE),
-    Median = median(bwt, na.rm = TRUE),
-    CV = rel_dis(bwt)
-  ) %>%
-  as_hux() %>% theme_pubh(1)
-
-## -----------------------------------------------------------------------------
-birthwt %>%
-  box_plot(bwt ~ smoke, fill = ~ race) %>%
-  axis_labs()
+  box_plot(bwt ~ smoke, fill = ~ race)
 
 ## -----------------------------------------------------------------------------
 birthwt %>%
   gen_bst_df(bwt ~ race|smoke) %>%
-  as_hux() %>% theme_pubh(1)
+  as_hux() %>% theme_pubh()
 
 ## -----------------------------------------------------------------------------
 model_norm <- lm(bwt ~ smoke + race, data = birthwt)
@@ -61,28 +44,33 @@ model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 model_norm %>% Anova()
 
 ## -----------------------------------------------------------------------------
-model_norm %>% 
-  summ(confint = TRUE, model.info = FALSE)
+model_norm %>% parameters()
+
+## -----------------------------------------------------------------------------
+model_norm %>% performance()
+
+## -----------------------------------------------------------------------------
+model_norm %>%
+  tbl_regression() %>% 
+  cosm_reg() %>% theme_pubh() %>% 
+  add_footnote(get_r2(model_norm), font_size = 9)
 
 ## -----------------------------------------------------------------------------
 model_norm %>% 
   glm_coef(labels = model_labels(model_norm)) %>%
   as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+  theme_pubh() %>%
   add_footnote(get_r2(model_norm), font_size = 9)
 
 ## -----------------------------------------------------------------------------
 model_norm %>%
   glm_coef(se_rob = TRUE, labels = model_labels(model_norm)) %>%
   as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+  theme_pubh() %>%
   add_footnote(paste(
     get_r2(model_norm), "\n",
     "CIs and p-values estimated with robust standard errors."),
     font_size = 9)
-
-## -----------------------------------------------------------------------------
-model_norm %>% glance()
 
 ## -----------------------------------------------------------------------------
 model_norm %>%
@@ -105,26 +93,26 @@ diet <- diet %>%
 
 ## -----------------------------------------------------------------------------
 diet %>% estat(~ fibre|chd) %>%
-  as_hux() %>% theme_pubh(1)
+  as_hux() %>% theme_pubh()
 
 ## -----------------------------------------------------------------------------
 diet %>% na.omit() %>%
   copy_labels(diet) %>%
-  box_plot(fibre ~ chd) %>%
-  axis_labs()
+  box_plot(fibre ~ chd)
 
 ## -----------------------------------------------------------------------------
 model_binom <- glm(chd ~ fibre, data = diet, family = binomial)
 
 ## -----------------------------------------------------------------------------
-model_binom %>% 
-  summ(confint = TRUE, model.info = FALSE, exp = TRUE)
+model_binom %>% parameters(exponentiate = TRUE)
 
 ## -----------------------------------------------------------------------------
-model_binom %>%
-  glm_coef(labels = model_labels(model_binom)) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+model_binom %>% performance()
+
+## -----------------------------------------------------------------------------
+model_binom %>% 
+  tbl_regression(exponentiate = TRUE) %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_binom), font_size = 9)
 
 ## -----------------------------------------------------------------------------
@@ -146,28 +134,22 @@ bdendo <- bdendo %>%
   )
 
 ## -----------------------------------------------------------------------------
-t1 = bdendo %>%
-  filter(est == "Oestrogen") %>%
+bdendo %>% 
   mutate(
     cancer = relevel(cancer, ref = "Case"),
-    gall = relevel(gall, ref = "GBD")
+    gall = relevel(gall, ref = "GBD"),
+    est = relevel(est, ref = "Oestrogen")
   ) %>%
   copy_labels(bdendo) %>%
-  cross_tab(cancer ~ gall,
-            label = "Oestrogen users")
-
-t2 = bdendo %>%
-  filter(est == "No oestrogen") %>%
-  mutate(
-    cancer = relevel(cancer, ref = "Case"),
-    gall = relevel(gall, ref = "GBD")
-  ) %>%
-  copy_labels(bdendo) %>%
-  cross_tab(cancer ~ gall,
-            label = "Non-oestrogen users")
-
-rbind(t1, t2) %>%
-  theme_pubh(c(3, 6, 9))
+  select(cancer, gall, est) %>% 
+  tbl_strata(
+    strata = est,
+    .tbl_fun = ~ .x %>%
+      tbl_summary(by = gall)
+  ) %>% 
+  cosm_sum(bold = TRUE, head_label = " ") %>% 
+  theme_pubh(2) %>% 
+  set_align(1, everywhere, "center")
 
 ## -----------------------------------------------------------------------------
 bdendo %>%
@@ -182,11 +164,12 @@ bdendo %>%
 require(survival, quietly = TRUE)
 model_clogit <- clogit(cancer == 'Case' ~ est * gall + strata(set), data = bdendo)
 
+## -----------------------------------------------------------------------------
 model_clogit %>%
   glm_coef(labels = c("Oestrogen/No oestrogen", "GBD/No GBD",
                       "Oestrogen:GBD Interaction")) %>%
   as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+  theme_pubh() %>%
   add_footnote(get_r2(model_clogit), font_size = 9)
 
 ## -----------------------------------------------------------------------------
@@ -199,8 +182,8 @@ bdendo_pred %>%
   gf_labs(y = "P(cancer)", x = "", col = get_label(bdendo$gall))
 
 ## ----message=FALSE------------------------------------------------------------
-require(MASS, quietly = TRUE)
-data(housing)
+#require(MASS, quietly = TRUE)
+data(housing, package = "MASS")
 housing <- housing %>%
   var_labels(
     Sat = "Satisfaction",
@@ -210,13 +193,12 @@ housing <- housing %>%
     )
 
 ## -----------------------------------------------------------------------------
-model_ord <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing, Hess = TRUE)
+model_ord <- MASS::polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing, Hess = TRUE)
 
 ## -----------------------------------------------------------------------------
-model_ord %>%
-  glm_coef(labels = model_labels(model_ord, intercept = FALSE)) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+model_ord %>% 
+  tbl_regression(exponentiate = TRUE) %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_ord), font_size = 9)
 
 ## -----------------------------------------------------------------------------
@@ -236,7 +218,7 @@ emmip(model_ord, Infl ~ Type |Cont) %>%
   gf_labs(x = "Type of rental", col = "Perceived influence")
 
 ## -----------------------------------------------------------------------------
-data(quine)
+data(quine, package = "MASS")
 levels(quine$Eth) <- c("Aboriginal", "White")
 levels(quine$Sex) <- c("Female", "Male")
 
@@ -248,52 +230,42 @@ quine <- quine %>%
     Age = "Age group"
     )
 
-## ----message=FALSE------------------------------------------------------------
-quine %>%
-  group_by(Eth, Sex, Age) %>%
-  summarise(
-    n = n(),
-    Mean = mean(Days, na.rm = TRUE),
-    SD = sd(Days, na.rm = TRUE),
-    Median = median(Days, na.rm = TRUE),
-    CV = rel_dis(Days)
-  ) %>%
-  as_hux() %>% theme_pubh(1)
+## -----------------------------------------------------------------------------
+quine %>% 
+  cross_tbl(by = "Eth") %>% 
+  theme_pubh(2) %>% 
+  add_footnote("n (%); Median (IQR)", font_size = 9)
 
 ## -----------------------------------------------------------------------------
 quine %>%
-  box_plot(Days ~ Age|Sex, fill = ~ Eth) %>%
-  axis_labs() %>% gf_labs(fill = "")
+  box_plot(Days ~ Age|Sex, fill = ~ Eth)
 
 ## -----------------------------------------------------------------------------
 model_pois <- glm(Days ~ Eth + Sex + Age, family = poisson, data = quine)
 
-model_pois %>%
-  glm_coef(labels = model_labels(model_pois), se_rob = TRUE) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+## -----------------------------------------------------------------------------
+model_pois %>% 
+  tbl_regression(exponentiate = TRUE) %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_pois), font_size = 9)
 
 ## -----------------------------------------------------------------------------
-model_pois %>% glance()
+model_pois %>% performance()
 
 ## -----------------------------------------------------------------------------
-deviance(model_pois) / df.residual(model_pois)
+model_pois %>% check_overdispersion()
 
-## ----message=FALSE------------------------------------------------------------
-model_negbin <- glm.nb(Days ~ Eth + Sex + Age, data = quine)
+## -----------------------------------------------------------------------------
+model_negbin <- MASS::glm.nb(Days ~ Eth + Sex + Age, data = quine)
 
-model_negbin %>%
-  glm_coef(labels = model_labels(model_negbin), se_rob = TRUE)  %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+## -----------------------------------------------------------------------------
+model_negbin %>% 
+  tbl_regression(exponentiate = TRUE) %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_negbin), font_size = 9)
 
 ## -----------------------------------------------------------------------------
-model_negbin %>% glance()
-
-## -----------------------------------------------------------------------------
-model_negbin %>% Anova()
+model_negbin %>% performance()
 
 ## -----------------------------------------------------------------------------
 model_negbin %>%
@@ -305,8 +277,7 @@ emmip(model_negbin, Eth ~ Age|Sex) %>%
   gf_labs(y = "Number of absent days", x = "Age group", col = "Ethnicity")
 
 ## -----------------------------------------------------------------------------
-multiple(model_negbin, ~ Age|Eth)$df %>%
-  as_hux() %>% theme_pubh(1)
+multiple(model_negbin, ~ Age|Eth)$df
 
 ## -----------------------------------------------------------------------------
 multiple(model_negbin, ~ Age|Eth)$fig_ci %>%
@@ -338,14 +309,14 @@ model_exp <- survreg(Surv(times, event) ~ rx, data = bladder, dist = "exponentia
 model_exp %>%
   glm_coef(labels = c("Treatment: Thiotepa/Placebo"), se_rob = TRUE) %>%
   as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+  theme_pubh() %>%
   add_footnote(get_r2(model_exp), font_size = 9)
 
 ## -----------------------------------------------------------------------------
 model_exp %>%
   glm_coef(labels = c("Treatment: Thiotepa/Placebo")) %>%
   as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+  theme_pubh() %>%
   add_footnote(get_r2(model_exp), font_size = 9)
 
 ## -----------------------------------------------------------------------------
@@ -357,50 +328,8 @@ model_exp %>%
 model_cox <-  coxph(Surv(times, event) ~ rx, data = bladder)
 
 ## -----------------------------------------------------------------------------
-model_cox %>%
-  glm_coef(labels = c("Treatment: Thiotepa/Placebo")) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
+model_cox %>% 
+  tbl_regression(exponentiate = TRUE) %>% 
+  cosm_reg() %>% theme_pubh() %>% 
   add_footnote(get_r2(model_cox), font_size = 9)
-
-## -----------------------------------------------------------------------------
-model_cox %>%
-  plot_model(type = "pred", terms = ~ rx, dot.size = 1.5, 
-           title = "") %>%
-  gf_labs(x = "Treatment", title = "")
-
-## ---- message=FALSE-----------------------------------------------------------
-require(lme4, quietly = TRUE)
-data(Orthodont, package = "nlme")
-
-## -----------------------------------------------------------------------------
-Orthodont <- Orthodont %>%
-  var_labels(
-    distance = "Pituitary distance (mm)",
-    age = "Age (years)"
-    )
-
-## -----------------------------------------------------------------------------
-model_mix <- lmer(distance ~ Sex * age + (1|Subject), data = Orthodont)
-
-## -----------------------------------------------------------------------------
-model_mix %>%
-  summ(center = TRUE, confint = TRUE, model.info = FALSE)
-
-## -----------------------------------------------------------------------------
-model_mix %>%
-  center_mod() %>%
-  glm_coef(labels = c(
-    model_labels(model_mix),
-    "Sex:Age interaction"
-    )) %>%
-  as_hux() %>% set_align(everywhere, 2:3, "right") %>%
-  theme_pubh(1) %>%
-  add_footnote(get_r2(model_mix), font_size = 9)
-
-## -----------------------------------------------------------------------------
-model_mix %>%
-  plot_model("eff", terms = age ~ Sex, 
-           show.data = TRUE, jitter = 0.1, dot.size = 1.5) %>%
-  gf_labs(y = get_label(Orthodont$distance), x = "Age (years)", title = "")
 

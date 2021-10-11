@@ -14,12 +14,12 @@
 #' mean(x)
 #' ss_jk(x, mean(x))
 #' jack_knife(x)
-ss_jk <- function(obs, stat)
-{
-	n <- length(obs)
-	ss <- numeric(n)
-	for(i in 1:n) ss[i] <- ((obs[i] - stat)^2)
-	ss
+#' @export
+ss_jk <- function(obs, stat) {
+  n <- length(obs)
+  ss <- numeric(n)
+  for (i in 1:n) ss[i] <- ((obs[i] - stat)^2)
+  ss
 }
 
 #' Ranks leverage observations from Jackknife method.
@@ -39,18 +39,18 @@ ss_jk <- function(obs, stat)
 #' x <- rnorm(100, 170, 8)
 #' mean(x)
 #' head(jack_knife(x))
-jack_knife <- function(x)
-{
-	jk.means <- knife_mean(x)
-	mu <- mean(x, na.rm = TRUE)
-	jk.ss <- ss_jk(jk.means, mu)
-	jk.ord <- order(jk.ss, decreasing = TRUE)
-	Observation <- jk.ord
-	SS <- jk.ss[jk.ord]
-	Mean <- jk.means[jk.ord]
-	res <- data.frame(Observation, Value = x[jk.ord], Mean, SS)
-	rownames(res) <- NULL
-	res
+#' @export
+jack_knife <- function(x) {
+  jk.means <- knife_mean(x)
+  mu <- mean(x, na.rm = TRUE)
+  jk.ss <- ss_jk(jk.means, mu)
+  jk.ord <- order(jk.ss, decreasing = TRUE)
+  Observation <- jk.ord
+  SS <- jk.ss[jk.ord]
+  Mean <- jk.means[jk.ord]
+  res <- data.frame(Observation, Value = x[jk.ord], Mean, SS)
+  rownames(res) <- NULL
+  res
 }
 
 #' Leverage.
@@ -67,13 +67,13 @@ jack_knife <- function(x)
 #' mean(x)
 #' leverage(x)
 #' rank_leverage(x)
-leverage <- function(x)
-{
-	inv <- 1 / length(x)
-	ssx <- (x - mean(x, na.rm = TRUE))^2
-	ssx2 <- sum(ssx)
-	lev <- inv + ssx / ssx2
-	lev
+#' @export
+leverage <- function(x) {
+  inv <- 1 / length(x)
+  ssx <- (x - mean(x, na.rm = TRUE))^2
+  ssx2 <- sum(ssx)
+  lev <- inv + ssx / ssx2
+  lev
 }
 
 #' Ranks observations by leverage.
@@ -92,14 +92,14 @@ leverage <- function(x)
 #' x <- rnorm(100, 170, 8)
 #' mean(x)
 #' head(rank_leverage(x))
-rank_leverage <- function(x)
-{
-	lev <- leverage(x)
-	lev.ord <- order(lev, decreasing = TRUE)
-	Observation <- lev.ord
-	Leverage <- lev[lev.ord]
-	res <- data.frame(Observation, Leverage)
-	res
+#' @export
+rank_leverage <- function(x) {
+  lev <- leverage(x)
+  lev.ord <- order(lev, decreasing = TRUE)
+  Observation <- lev.ord
+  Leverage <- lev[lev.ord]
+  res <- data.frame(Observation, Leverage)
+  res
 }
 
 
@@ -127,23 +127,22 @@ rank_leverage <- function(x)
 #'
 #' titration %>%
 #'   gf_point(OD ~ Riboflavin) %>%
-#'   gf_smooth(col = 'indianred3', se = TRUE, lwd = 0.5, method = 'loess') %>%
-#'   axis_labs()
+#'   gf_smooth(col = "indianred3", se = TRUE, lwd = 0.5, method = "loess")
 #'
 #' ## Model with intercept different from zero:
 #' model <- lm(OD ~ Riboflavin, data = titration)
 #' glm_coef(model)
+#'
 #' predict_inv(model, 1.15)
-predict_inv <- function(model, y)
-{
+#' @export
+predict_inv <- function(model, y) {
   param <- length(coef(model))
   m <- ifelse(param == 1, as.numeric(coef(model)), coef(model)[2])
   b <- ifelse(param == 1, 0, coef(model)[1])
-	x <- (y - b) / m
-	names(x) <- names(m)
-	x
+  x <- (y - b) / m
+  names(x) <- names(m)
+  x
 }
-
 
 #' Jackknife for means.
 #'
@@ -157,12 +156,12 @@ predict_inv <- function(model, y)
 #' x
 #' mean(x)
 #' knife_mean(x)
-knife_mean <- function(x)
-{
-	n <- length(x)
-	jk <- numeric(n)
-	for(i in 1:n) jk[i] <- mean(x[-i], na.rm = TRUE)
-	jk
+#' @export
+knife_mean <- function(x) {
+  n <- length(x)
+  jk <- numeric(n)
+  for (i in 1:n) jk[i] <- mean(x[-i], na.rm = TRUE)
+  jk
 }
 
 #' Relative and Cumulative Frequency.
@@ -174,25 +173,25 @@ knife_mean <- function(x)
 #' @param dg Number of digits for rounding (default = 2).
 #' @return A data frame with the classes, the mid-point, the frequencies, the relative and cumulative frequencies.
 #' @examples
-#' data(IgM, package="ISwR")
+#' data(IgM, package = "ISwR")
 #' Ab <- data.frame(IgM)
-#' estat(~ IgM, data = Ab)
+#' estat(~IgM, data = Ab)
 #' freq_cont(IgM, seq(0, 4.5, 0.5))
-freq_cont <- function(x, bks, dg = 2)
-{
-	cx <- cut(x, breaks = bks)
-	n <- length(x)
-	x.tab <- as.data.frame(table(cx))
-	rel <- x.tab$Freq / n
-	n2 <- length(rel)
-	mids <- numeric(n2)
-	cum <- cumsum(rel)
-	for(i in 1:n2) mids[i] <- mean(c(bks[i], bks[i + 1]))
-	rel <- round(rel, digits = dg)
-	cum <- round(cum, digits = dg)
-	res <- data.frame(x.tab[, 1], mids, x.tab[, 2], rel, cum)
-	names(res) <- c('Class', 'Mids', 'Counts', 'rel.freq', 'cum.freq')
-	res
+#' @export
+freq_cont <- function(x, bks, dg = 2) {
+  cx <- cut(x, breaks = bks)
+  n <- length(x)
+  x.tab <- as.data.frame(table(cx))
+  rel <- x.tab$Freq / n
+  n2 <- length(rel)
+  mids <- numeric(n2)
+  cum <- cumsum(rel)
+  for (i in 1:n2) mids[i] <- mean(c(bks[i], bks[i + 1]))
+  rel <- round(rel, digits = dg)
+  cum <- round(cum, digits = dg)
+  res <- data.frame(x.tab[, 1], mids, x.tab[, 2], rel, cum)
+  names(res) <- c("Class", "Mids", "Counts", "rel.freq", "cum.freq")
+  res
 }
 
 #' Goodness of fit for Logistic Regression.
@@ -209,21 +208,23 @@ freq_cont <- function(x, bks, dg = 2)
 #' model <- glm(chd ~ fibre, data = diet, family = binomial)
 #' glm_coef(model, labels = c("Constant", "Fibre intake (g/day)"))
 #' logistic_gof(model)
-logistic_gof <- function(model)
-{
-	L <- model$linear.predictors
-	if (length(L) == 0)
-      stop("you did not use linear.predictors=TRUE for the fit")
-	cof <- model$coefficients
-	P <- 1 / (1 + exp(-L))
-	Y <- model$y
-	rnam <- names(Y)
-	cnam <- names(cof)
-	if (!is.factor(Y))
-      Y <- factor(Y)
+#' @export
+logistic_gof <- function(model) {
+  L <- model$linear.predictors
+  if (length(L) == 0) {
+    stop("you did not use linear.predictors=TRUE for the fit")
+  }
+  cof <- model$coefficients
+  P <- 1 / (1 + exp(-L))
+  Y <- model$y
+  rnam <- names(Y)
+  cnam <- names(cof)
+  if (!is.factor(Y)) {
+    Y <- factor(Y)
+  }
   lev <- levels(Y)
   Y <- unclass(Y) - 1
-	X <- glm(model$formula, family = binomial, x = TRUE, data = model$data)$x
+  X <- glm(model$formula, family = binomial, x = TRUE, data = model$data)$x
   y <- Y >= 1
   p <- P
   sse <- sum((y - p)^2)
@@ -236,8 +237,10 @@ logistic_gof <- function(model)
   z <- (sse - ev) / sd
   P <- 2 * (1 - pnorm(abs(z)))
   stats <- data.frame(sse, ev, sd, z, P)
-	names(stats) <- c("Sum of squared errors", "Expected value|H0",
-  "SD", "Z", "P")
+  names(stats) <- c(
+    "Sum of squared errors", "Expected value|H0",
+    "SD", "Z", "P"
+  )
   return(drop(stats))
 }
 
@@ -251,7 +254,7 @@ logistic_gof <- function(model)
 #' @examples
 #' ## Linear regression:
 #' Riboflavin <- seq(0, 80, 10)
-#' OD <- 0.0125*Riboflavin + rnorm(9, 0.6, 0.03)
+#' OD <- 0.0125 * Riboflavin + rnorm(9, 0.6, 0.03)
 #' titration <- data.frame(Riboflavin, OD)
 #' model1 <- lm(OD ~ Riboflavin, data = titration)
 #' summary(model1)
@@ -260,17 +263,19 @@ logistic_gof <- function(model)
 #' ## Non-linear regression:
 #' library(nlme, quietly = TRUE)
 #' data(Puromycin)
-#' mm.tx <- gnls(rate ~ SSmicmen(conc, Vm, K), data = Puromycin,
-#'   subset = state == "treated")
+#' mm.tx <- gnls(rate ~ SSmicmen(conc, Vm, K),
+#'   data = Puromycin,
+#'   subset = state == "treated"
+#' )
 #' summary(mm.tx)
 #' coef_det(Puromycin$rate[1:12], mm.tx$fitted)
-coef_det <- function(obs, fit)
-{
-	obm <- mean(obs, na.rm=TRUE)
-	SSres <- sum((obs-fit)^2, na.rm = TRUE)
-	SStot <- sum((obs-obm)^2, na.rm = TRUE)
-	res <- 1 - (SSres/SStot)
-	res
+#' @export
+coef_det <- function(obs, fit) {
+  obm <- mean(obs, na.rm = TRUE)
+  SSres <- sum((obs - fit)^2, na.rm = TRUE)
+  SStot <- sum((obs - obm)^2, na.rm = TRUE)
+  res <- 1 - (SSres / SStot)
+  res
 }
 
 #' Ranks observations based upon influence measures on models.
@@ -286,27 +291,27 @@ coef_det <- function(obs, fit)
 #' data(diet, package = "Epi")
 #' model <- glm(chd ~ fibre, data = diet, family = binomial)
 #' rank_influence(model)
-rank_influence <- function(model)
-{
-	 infl <- influence.measures(model)
-	 mat <- (infl$is.inf)*1
-	 signifa <- sort(apply(mat, 1, sum), decreasing=TRUE)
-	 mat.sum <- signifa[signifa>0]
-	 mat.names <- as.numeric(names(mat.sum))
-	 pos <- match(mat.names, row.names(infl$infmat), nomatch = 0)
-	 if (length(pos) > 10) {
-		 pos2 <- pos[1:10]
-		 signifb <- as.vector(mat.sum)[1:10]
-		 res <- data.frame(infl$infmat[pos2,], signif=signifb)
-	 }
-	 if (length(pos) < 10 & length(pos) > 0) {
-		 signifb <- as.vector(mat.sum)
-		 res <- data.frame(infl$infmat[pos,], signif=signifb)
-	 }
-	 if (length(pos)==0) {
-		 res <- 'No significant influence measures'
-	 }
-	 res
+#' @export
+rank_influence <- function(model) {
+  infl <- influence.measures(model)
+  mat <- (infl$is.inf) * 1
+  signifa <- sort(apply(mat, 1, sum), decreasing = TRUE)
+  mat.sum <- signifa[signifa > 0]
+  mat.names <- as.numeric(names(mat.sum))
+  pos <- match(mat.names, row.names(infl$infmat), nomatch = 0)
+  if (length(pos) > 10) {
+    pos2 <- pos[1:10]
+    signifb <- as.vector(mat.sum)[1:10]
+    res <- data.frame(infl$infmat[pos2, ], signif = signifb)
+  }
+  if (length(pos) < 10 & length(pos) > 0) {
+    signifb <- as.vector(mat.sum)
+    res <- data.frame(infl$infmat[pos, ], signif = signifb)
+  }
+  if (length(pos) == 0) {
+    res <- "No significant influence measures"
+  }
+  res
 }
 
 #' Inverse of the logit
@@ -314,15 +319,17 @@ rank_influence <- function(model)
 #' \code{inv_logit} Calculates the inverse of the logit (probability in logistic regression)
 #'
 #' @param x Numerical value used to compute the inverse of the logit.
-inv_logit <- function(x)
-{
+#' @export
+inv_logit <- function(x) {
   if (any(omit <- is.na(x))) {
     lv <- x
     lv[omit] <- NA
-    if (any(!omit))
+    if (any(!omit)) {
       lv[!omit] <- Recall(x[!omit])
-    return(lv)}
-  exp(x)/(1 + exp(x))
+    }
+    return(lv)
+  }
+  exp(x) / (1 + exp(x))
 }
 
 #' Pseudo R2 (logistic regression)
@@ -336,10 +343,10 @@ inv_logit <- function(x)
 #' model_oncho <- glm(mf ~ area, data = Oncho, binomial)
 #' glm_coef(model_oncho, labels = c("Constant", "Area (rainforest/savannah)"))
 #' pseudo_r2(model_oncho)
-pseudo_r2 <- function(model)
-{
+#' @export
+pseudo_r2 <- function(model) {
   if (!(model$family$family == "binomial" && (model$family$link ==
-                                              "logit" || model$family$link == "probit"))) {
+    "logit" || model$family$link == "probit"))) {
     stop("No logistic regression model, no pseudo R^2 computed.")
   }
   dev <- model$deviance
@@ -359,30 +366,139 @@ pseudo_r2 <- function(model)
 #' @param ht A huxtable object.
 #' @param rw A numeric vector with the rows on which a bottom border is desired.
 #' @details \code{theme_pubh} is a variation of \code{theme_article} with the added flexibility
-#' of adding a bottom border line at desired row numbers. This theme is particular useful for
-#' function \code{cross_tab} as by default, \code{theme_pubh} adds the border after the third line
-#' (see examples).
+#' of adding a bottom border line at desired row numbers.
 #' @examples
-#' require(huxtable, quietly = TRUE)
+#' require(dplyr, quietly = TRUE)
 #' data(Oncho)
 #'
 #' Oncho %>%
-#'   cross_tab(area ~ mf) %>%
-#'   theme_pubh()
+#'   select(area, mf) %>%
+#'   cross_tbl(by = "area") %>%
+#'   theme_pubh(2)
 #'
 #' data(Bernard)
 #'
-#' t1 <- estat(~ apache|fate, data = Bernard)
-#' t2 <- estat(~ o2del|fate, data = Bernard)
+#' t1 <- estat(~ apache | fate, data = Bernard)
+#' t2 <- estat(~ o2del | fate, data = Bernard)
 #' rbind(t1, t2) %>%
 #'   as_hux() %>%
 #'   theme_pubh(c(1, 3))
-theme_pubh <- function(ht, rw = 3)
-{
+#' @export
+theme_pubh <- function(ht, rw = 1) {
   ht <- huxtable::set_all_borders(ht, 0)
   ht <- huxtable::set_top_border(ht, 1, huxtable::everywhere)
   ht <- huxtable::set_bottom_border(ht, huxtable::final(1), huxtable::everywhere)
   ht <- huxtable::set_bottom_border(ht, rw, huxtable::everywhere)
   ht <- huxtable::style_header_rows(ht, bold = TRUE)
   ht
+}
+
+#' Cosmetics for summary tables
+#' Adds some cosmetics to tables of descriptive statistics generated by tbl_summary.
+#' @param gt_tbl A table object generated by \code{\link[gtsummary]{tbl_summary}}.
+#' @param pad Numerical, padding above and bellow rows.
+#' @param bold Display labels in bold?
+#' @param head_label Character, label to be used as head for the variable's column.
+#' @details Function \code{cosm_sum} adds some cosmetics to tables generated by \code{\link[gtsummary]{tbl_summary}}, then converts the table as a \code{\link[huxtable]{huxtable}} and sets proper alignment.
+#' @return A \code{\link[huxtable]{huxtable}}.
+#' @examples
+#' require(dplyr, quietly = TRUE)
+#'
+#' data(Oncho)
+#' Oncho %>%
+#'   select(-id) %>%
+#'   tbl_summary() %>%
+#'   cosm_sum(bold = TRUE) %>%
+#'   theme_pubh(1)
+#' @export
+cosm_sum <- function(gt_tbl, pad = 3, bold = FALSE, head_label = "**Variable**") {
+  tbl <- gt_tbl %>%
+    gtsummary::modify_header(label ~ head_label) %>%
+    gtsummary::modify_footnote(everything() ~ NA)
+
+  if (bold == FALSE) {
+    tbl <- tbl
+  } else {
+    tbl <- tbl %>% gtsummary::bold_labels()
+  }
+
+  tbl <- tbl %>%
+    gtsummary::as_hux_table() %>%
+    huxtable::set_align(everywhere, -1, "right") %>%
+    huxtable::set_top_padding(pad) %>%
+    huxtable::set_bottom_padding(pad)
+
+  tbl
+}
+
+#' Cosmetics for tables of regression coefficients.
+#' Converts tables generated by \code{\link[gtsummary]{tbl_regression}} to \code{\link[huxtable]{huxtable}} and adds some cosmetics.
+#' @param gt_tbl A table object generated by \code{\link[gtsummary]{tbl_regression}}.
+#' @param pad Numerical, padding above and bellow rows.
+#' @param type Anova's type to calculate global p-values.
+#' @param bold Display labels in bold?
+#' @param head_label Character, label to be used as head for the variable's column.
+#' @return A \code{\link[huxtable]{huxtable}}.
+#' @examples
+#' require(sjlabelled, quietly = TRUE)
+#'
+#' data(diet, package = "Epi")
+#' diet <- diet %>%
+#'   var_labels(
+#'     chd = "Coronary Heart Disease",
+#'     fibre = "Fibre intake (g/day)"
+#'   )
+#'
+#' model_binom <- glm(chd ~ fibre, data = diet, family = binomial)
+#'
+#' model_binom %>%
+#'   tbl_regression(exponentiate = TRUE) %>%
+#'   cosm_reg(bold = TRUE) %>%
+#'   theme_pubh(1) %>%
+#'   add_footnote(get_r2(model_binom), font_size = 9)
+#'
+#' data(birthwt, package = "MASS")
+#' birthwt <- birthwt %>%
+#'   mutate(
+#'     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
+#'     race = factor(race, labels = c("White", "African American", "Other"))
+#'   ) %>%
+#'   var_labels(
+#'     bwt = "Birth weight (g)",
+#'     smoke = "Smoking status",
+#'     race = "Race"
+#'   )
+#'
+#' model_norm <- lm(bwt ~ smoke + race, data = birthwt)
+#'
+#' model_norm %>%
+#'   tbl_regression() %>%
+#'   cosm_reg(bold = TRUE) %>%
+#'   theme_pubh(1) %>%
+#'   add_footnote(get_r2(model_norm), font_size = 9)
+#' @export
+cosm_reg <- function(gt_tbl, pad = 3, type = 3, bold = TRUE, head_label = "**Variable**") {
+  tbl0 <- gt_tbl %>%
+    gtsummary::modify_header(label ~ head_label) %>%
+    gtsummary::modify_footnote(everything() ~ NA, abbreviation = TRUE)
+
+  if (is.null(type)) {
+    tbl <- tbl0
+  } else {
+    tbl <- tbl0 %>% gtsummary::add_global_p(type = type, quiet = TRUE)
+  }
+
+  if (bold == FALSE) {
+    tbl <- tbl
+  } else {
+    tbl <- tbl %>% gtsummary::bold_labels()
+  }
+
+  tbl <- tbl %>%
+    gtsummary::as_hux_table() %>%
+    huxtable::set_align(everywhere, -1, "right") %>%
+    huxtable::set_top_padding(pad) %>%
+    huxtable::set_bottom_padding(pad)
+
+  tbl
 }

@@ -21,7 +21,6 @@ The main purpose of \code{get_r2} is to allow easy printing of R2 value in table
 \examples{
 require(dplyr, quietly = TRUE)
 require(sjlabelled, quietly = TRUE)
-require(huxtable, quietly = TRUE)
 
 data(birthwt, package = "MASS")
 birthwt <- birthwt \%>\%
@@ -30,17 +29,18 @@ birthwt <- birthwt \%>\%
     race = factor(race, labels = c("White", "African American", "Other"))
   ) \%>\%
   var_labels(
-    bwt = 'Birth weight (g)',
-    smoke = 'Smoking status',
-    race = 'Race'
+    bwt = "Birth weight (g)",
+    smoke = "Smoking status",
+    race = "Race"
   )
 
 model_norm <- lm(bwt ~ smoke + race, data = birthwt)
 
 model_norm \%>\%
   glm_coef(labels = model_labels(model_norm)) \%>\%
-  as_hux() \%>\% set_align(everywhere, 2:3, "right") \%>\%
-  theme_pubh(1) \%>\%
+  as_hux() \%>\%
+  set_align(everywhere, 2:3, "right") \%>\%
+  theme_pubh() \%>\%
   add_footnote(get_r2(model_norm), font_size = 9)
 }
 \seealso{
