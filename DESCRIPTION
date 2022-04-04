@@ -1,6 +1,6 @@
 Package: pubh
 Title: A Toolbox for Public Health and Epidemiology
-Version: 1.2.5
+Version: 1.2.7
 Authors@R: c(
     person("Josie", "Athens", email = "josie.athens@gmail.com", role = c("aut", "cre")),
     person("Frank", "Harell", email = "f.harrell@vanderbilt.edu", role = "ctb"),
@@ -15,7 +15,7 @@ Description: A toolbox for making R functions and capabilities more
     plots and functions relevant for introductory papers in Epidemiology 
     or Public Health. Please note that use of the 
     provided data sets is for educational purposes only.
-Depends: R (>= 4.0.0), emmeans, ggformula, gtsummary, huxtable,
+Depends: R (>= 4.1.0), emmeans, ggformula, gtsummary, huxtable,
         magrittr, stats
 Imports: car, dplyr, Epi, epiR, epitools, ggplot2, Hmisc, lmtest,
         moonBook, sandwich, sjlabelled, sjmisc, sjPlot, survival,
@@ -30,10 +30,10 @@ RoxygenNote: 7.1.2
 VignetteBuilder: knitr
 BugReports: https://github.com/josie-athens/pubh/issues
 NeedsCompilation: no
-Packaged: 2021-10-10 00:53:56 UTC; josie
+Packaged: 2022-04-03 22:26:05 UTC; josie
 Author: Josie Athens [aut, cre],
   Frank Harell [ctb],
   John Fox [ctb],
   R-Core [ctb]
 Repository: CRAN
-Date/Publication: 2021-10-11 07:20:02 UTC
+Date/Publication: 2022-04-04 13:50:02 UTC

@@ -1,4 +1,4 @@
-0b412908799fa2649c3c4d6568597705 *DESCRIPTION
+a87e8b2d3eed84604614d6259db4c488 *DESCRIPTION
 da6ecdd653dd4ee59b4b0c0f57433e13 *NAMESPACE
 3bd6ceb3e8fa276c0aacabc426010964 *R/data.R
 6f4c3b255232f67cdb1f84c71de19424 *R/descriptive_functions.R
@@ -7,7 +7,7 @@ eaed7e015533077a8abd2349709f65d6 *R/epi_functions.R
 17755e0922c4e0a73ca93513f308b9e5 *R/misc_functions.R
 64f8f7f72edc80768410a41202c6e63b *R/plot_functions.R
 264fe85af04774dacd552df5b0a97809 *README.md
-bdabcb36983dc75e9b46ad92cacd39e9 *build/vignette.rds
+edab8673fbdbbd3364e1e3cd903934e2 *build/vignette.rds
 a8c2a17f6870486f9f09bacc15ed79e6 *data/Bernard.rda
 f1f75b654a91351ea452b54d1f7bae7b *data/Brenner.rda
 fe7c57e127e13ae4549b4f42ada8ef4b *data/Fentress.rda
@@ -24,10 +24,10 @@ b563339dbeb5c2e53ac313d23e59805e *data/Tuzson.rda
 3ed903a31f842053f01eb86f3f0e6339 *data/Vanderpump.rda
 4765d9357bcf8caeb332d2b982a248c0 *inst/doc/introduction.R
 14bf078ae511bc478f677b02c49d3efe *inst/doc/introduction.Rmd
-8a747679fbb21a317d2edd2e5f6c2f8f *inst/doc/introduction.html
-4fdd9cd3b2aafdc7ba2f8b513c1288a4 *inst/doc/regression.R
-fd892fe5584127a04c47a3f0122250dd *inst/doc/regression.Rmd
-d1c95bb15d9eef35012b85242fbc76a4 *inst/doc/regression.html
+5f811a1ecb93a4fbe80b6af073f5ae02 *inst/doc/introduction.html
+de9002cbc3af4dacf2c981dc852a60d5 *inst/doc/regression.R
+de5df3f0968eeca28aae268a33336b61 *inst/doc/regression.Rmd
+c3f632cc984e106c5c5f047db2e887c1 *inst/doc/regression.html
 f9761db0f4dc428d24b16227f7e2bfd6 *inst/rmarkdown/templates/report/skeleton/skeleton.Rmd
 8f329fe469bec3beb2998fd835f7c7dc *inst/rmarkdown/templates/report/template.yaml
 f2a1b6324b3a1fe8b7d2d0523cde4762 *man/Bernard.Rd
@@ -92,4 +92,4 @@ ca6b0d22a496f3f4a9808b775d075dbe *man/qq_plot.Rd
 feebe3f70a1f34a681a55be19433bec8 *man/strip_error.Rd
 3ae37e9b1d49775687942bb29f7a1143 *man/theme_pubh.Rd
 14bf078ae511bc478f677b02c49d3efe *vignettes/introduction.Rmd
-fd892fe5584127a04c47a3f0122250dd *vignettes/regression.Rmd
+de5df3f0968eeca28aae268a33336b61 *vignettes/regression.Rmd
