@@ -16,7 +16,6 @@ importFrom("huxtable", "as_hux", "set_align", "insert_row", "merge_cells",
            "set_top_border", "set_bottom_border", "final", "style_header_rows",
            "set_top_padding", "set_bottom_padding")
 importFrom("sjmisc", "round_num")
-importFrom("magrittr", "%>%")
 importFrom("dplyr", "select")
 importFrom("sjlabelled", "get_label", "term_labels")
 importFrom("tidyselect",  "matches", "vars_select", "all_of")
@@ -26,6 +25,13 @@ importFrom("lmtest", "coeftest")
 importFrom("gtsummary", "as_hux_table", "bold_labels", "modify_header",
            "modify_footnote", "add_global_p", "modify_spanning_header",
            "tbl_summary", "add_overall", "add_p")
+importFrom("jtools", "summ")
+importFrom("survival", "strata")
+importFrom("performance", "r2")
+importFrom("Epi", "ci.lin")
+importFrom("car", "Anova")
+importFrom("epitools", "oddsratio", "epitable")
+importFrom("epiR", "epi.tests", "epi.2by2")
 
 export(axis_labs)
 export(bar_error)

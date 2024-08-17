@@ -10,7 +10,7 @@
 #' @examples
 #' data(kfm, package = "ISwR")
 #' require(sjlabelled, quietly = TRUE)
-#' kfm <- kfm %>%
+#' kfm <- kfm |>
 #'   var_labels(
 #'     dl.milk = "Breast-milk intake (dl/day)",
 #'     sex = "Sex",
@@ -20,14 +20,14 @@
 #'     mat.height = "Maternal height (cm)"
 #'   )
 #'
-#' kfm %>%
-#'   gf_point(weight ~ dl.milk) %>%
-#'   gf_lm(col = 2, interval = "confidence", col = 2) %>%
+#' kfm |>
+#'   gf_point(weight ~ dl.milk) |>
+#'   gf_lm(col = 2, interval = "confidence", col = 2) |>
 #'   axis_labs()
 #'
-#' kfm %>%
-#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) %>%
-#'   axis_labs() %>%
+#' kfm |>
+#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) |>
+#'   axis_labs() |>
 #'   gf_star(x1 = 1, y1 = 10.9, x2 = 2, y2 = 11, y3 = 11.2)
 #' @export
 axis_labs <- function(object) {
@@ -42,8 +42,8 @@ axis_labs <- function(object) {
   xl <- ifelse(is.null(sjlabelled::get_label(exposure)), x,
     sjlabelled::get_label(exposure)
   )
-  object %>%
-    gf_labs(x = xl, y = yl)
+  object |>
+    ggformula::gf_labs(x = xl, y = yl)
 }
 
 #' Annotating a plot to display differences between groups.
@@ -57,7 +57,7 @@ axis_labs <- function(object) {
 #' @param y2 Position in \code{y} where the horizontal line is drawn.
 #' @param y3 Position in \code{y} where the text is added.
 #' @param legend Character text used for annotating the plot.
-#' @param ... Additional information passed to \code{\link{gf_text}}.
+#' @param ... Additional information passed to \code{\link[ggformula]{gf_text}}.
 #' @details This function draws an horizontal line from coordinate (\code{x1}, \code{y2})
 #' to coordinate (\code{x2}, \code{y2}). Draws vertical lines below the horizontal line,
 #' towards data, from (\code{x1}, \code{y1}) to (\code{x1}, \code{y2}) and from
@@ -67,7 +67,7 @@ axis_labs <- function(object) {
 #' @examples
 #' data(kfm, package = "ISwR")
 #' require(sjlabelled, quietly = TRUE)
-#' kfm <- kfm %>%
+#' kfm <- kfm |>
 #'   var_labels(
 #'     dl.milk = "Breast-milk intake (dl/day)",
 #'     sex = "Sex",
@@ -77,32 +77,32 @@ axis_labs <- function(object) {
 #'     mat.height = "Maternal height (cm)"
 #'   )
 #'
-#' kfm %>%
-#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) %>%
+#' kfm |>
+#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) |>
 #'   gf_star(x1 = 1, y1 = 10.9, x2 = 2, y2 = 11, y3 = 11.2)
 #'
-#' kfm %>%
-#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) %>%
+#' kfm |>
+#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) |>
 #'   gf_star(1, 10.9, 2, 11, 11.4, legend = "p = 0.035", size = 2.5)
 #'
 #' data(energy, package = "ISwR")
-#' energy <- energy %>%
+#' energy <- energy |>
 #'   var_labels(
 #'     expend = "Energy expenditure (MJ/day)",
 #'     stature = "Stature"
 #'   )
 #'
-#' energy %>%
-#'   strip_error(expend ~ stature, col = "red") %>%
+#' energy |>
+#'   strip_error(expend ~ stature, col = "red") |>
 #'   gf_star(1, 13, 2, 13.2, 13.4, "**")
 #' @export
 gf_star <- function(fig, x1, y1, x2, y2, y3, legend = "*", ...) {
   dt <- data.frame(x1, y1, x2, y2, mid = mean(c(x1, x2)), y3)
-  fig %>%
-    gf_segment(y2 + y2 ~ x1 + x2, data = dt, inherit = FALSE) %>%
-    gf_segment(y1 + y2 ~ x1 + x1, data = dt, inherit = FALSE) %>%
-    gf_segment(y1 + y2 ~ x2 + x2, data = dt, inherit = FALSE) %>%
-    gf_text(y3 ~ mid, data = dt, label = legend, inherit = FALSE, ...)
+  fig |>
+    ggformula::gf_segment(y2 + y2 ~ x1 + x2, data = dt, inherit = FALSE) |>
+    ggformula::gf_segment(y1 + y2 ~ x1 + x1, data = dt, inherit = FALSE) |>
+    ggformula::gf_segment(y1 + y2 ~ x2 + x2, data = dt, inherit = FALSE) |>
+    ggformula::gf_text(y3 ~ mid, data = dt, label = legend, inherit = FALSE, ...)
 }
 
 #' Multiple comparisons with plot.
@@ -129,22 +129,22 @@ gf_star <- function(fig, x1, y1, x2, y2, y3, legend = "*", ...) {
 #' model_1 <- aov(bwt ~ race, data = birthwt)
 #' multiple(model_1, ~race)$df
 #'
-#' multiple(model_1, ~race)$fig_ci %>%
+#' multiple(model_1, ~race)$fig_ci |>
 #'   gf_labs(y = "Race", x = "Difference in birth weights (g)")
 #'
-#' multiple(model_1, ~race)$fig_pval %>%
+#' multiple(model_1, ~race)$fig_pval |>
 #'   gf_labs(y = "Race")
 #' @export
 multiple <- function(model, formula, adjust = "mvt", type = "response",
                      reverse = TRUE, level = 0.95, digits = 2, ...) {
-  term_emm <- emmeans(model, formula, type = type, ...)
+  term_emm <- emmeans::emmeans(model, formula, type = type, ...)
   emm_df <- as.data.frame(pairs(term_emm, adjust = adjust, reverse = reverse))
   emm_ci <- as.data.frame(confint(pairs(term_emm, adjust = adjust, reverse = reverse), level = level))
   log10_pval <- log10(emm_df[["p.value"]])
   emm_df$p.value <- round_pval(emm_df[["p.value"]])
-  emm_df <- emm_df %>%
+  emm_df <- emm_df |>
     dplyr::select(-df)
-  emm_ci <- emm_ci %>%
+  emm_ci <- emm_ci |>
     dplyr::select(-df)
   vars <- all.vars(formula)
   n <- length(vars)
@@ -160,28 +160,28 @@ multiple <- function(model, formula, adjust = "mvt", type = "response",
   if (n == 1) {
     names(emm_plot)[2] <- "Effect"
     if (names(emm_df)[2] == "estimate") {
-      fig_ci <- emm_plot %>%
-        gf_pointrange(contrast ~ Effect + lower.CL + upper.CL, col = ~log10_pval, ylab = " ") %>%
-        gf_vline(xintercept = ~0, lty = 2, col = "indianred")
+      fig_ci <- emm_plot |>
+        ggformula::gf_pointrange(contrast ~ Effect + lower.CL + upper.CL, col = ~log10_pval, ylab = " ") |>
+        ggformula::gf_vline(xintercept = ~0, lty = 2, col = "indianred")
     } else {
-      fig_ci <- emm_plot %>%
-        gf_pointrange(contrast ~ Effect + lower.CL + upper.CL, col = ~log10_pval, ylab = " ") %>%
-        gf_vline(xintercept = ~1, lty = 2, col = "indianred")
+      fig_ci <- emm_plot |>
+        ggformula::gf_pointrange(contrast ~ Effect + lower.CL + upper.CL, col = ~log10_pval, ylab = " ") |>
+        ggformula::gf_vline(xintercept = ~1, lty = 2, col = "indianred")
     }
   } else {
     names(emm_plot)[3] <- "Effect"
     names(emm_plot)[2] <- "confounder"
     if (names(emm_df)[3] == "estimate") {
-      fig_ci <- emm_plot %>%
-        gf_pointrange(contrast ~ Effect + lower.CL + upper.CL | confounder, col = ~log10_pval, ylab = " ") %>%
-        gf_vline(xintercept = ~0, lty = 2, col = "indianred")
+      fig_ci <- emm_plot |>
+        ggformula::gf_pointrange(contrast ~ Effect + lower.CL + upper.CL | confounder, col = ~log10_pval, ylab = " ") |>
+        ggformula::gf_vline(xintercept = ~0, lty = 2, col = "indianred")
     } else {
-      fig_ci <- emm_plot %>%
-        gf_pointrange(contrast ~ Effect + lower.CL + upper.CL | confounder, col = ~log10_pval, ylab = " ") %>%
-        gf_vline(xintercept = ~1, lty = 2, col = "indianred")
+      fig_ci <- emm_plot |>
+        ggformula::gf_pointrange(contrast ~ Effect + lower.CL + upper.CL | confounder, col = ~log10_pval, ylab = " ") |>
+        ggformula::gf_vline(xintercept = ~1, lty = 2, col = "indianred")
     }
   }
-  fig_pval <- pwpp(term_emm, adjust = adjust)
+  fig_pval <- emmeans::pwpp(term_emm, adjust = adjust)
   res <- list(df = emm_df, fig_ci = fig_ci, fig_pval = fig_pval)
 }
 
@@ -199,28 +199,26 @@ multiple <- function(model, formula, adjust = "mvt", type = "response",
 #' @param size Size of the symbol using to plot data.
 #' @param col Colour used for the symbol to plot data.
 #' @param transform Logical, should ratios instead of difference be used to construct the plot?
-#' @param ... Further arguments passed to \code{\link{gf_point}}.
+#' @param ... Further arguments passed to \code{\link[ggformula]{gf_point}}.
 #' @examples
 #' data(wright, package = "ISwR")
 #'
-#' wright %>%
+#' wright |>
 #'   bland_altman(mini.wright ~ std.wright,
 #'     pch = 16,
 #'     ylab = "Large-mini expiratory flow rate (l/min)",
 #'     xlab = "Mean expiratory flow rate (l/min)"
-#'   ) %>%
+#'   ) |>
 #'   gf_labs(
 #'     y = "Large-mini expiratory flow rate (l/min)",
 #'     x = "Mean expiratory flow rate (l/min)"
-#'   ) %>%
-#'   gf_theme(theme = sjPlot::theme_sjplot2(base_size = 9))
+#'   )
 #'
 #' data(Sharples)
 #'
-#' Sharples %>%
-#'   bland_altman(srweight ~ weight, transform = TRUE) %>%
-#'   gf_labs(x = "Mean of weights (kg)", y = "Measured weight / Self-reported weight") %>%
-#'   gf_theme(theme = sjPlot::theme_sjplot2(base_size = 9))
+#' Sharples |>
+#'   bland_altman(srweight ~ weight, transform = TRUE) |>
+#'   gf_labs(x = "Mean of weights (kg)", y = "Measured weight / Self-reported weight")
 #' @export
 bland_altman <- function(object = NULL, formula = NULL, data = NULL,
                          pch = 20, size = 1, col = "black", transform = FALSE, ...) {
@@ -256,40 +254,40 @@ bland_altman <- function(object = NULL, formula = NULL, data = NULL,
     sd(ratio, na.rm = TRUE)
   ))[2]
   if (transform == TRUE) {
-    gf_point(Ratio ~ Average,
+    ggformula::gf_point(Ratio ~ Average,
       data = df, pch = pch,
       size = size, col = col, ...
-    ) %>%
-      gf_hline(yintercept = ~ mean(Ratio), col = "indianred3") %>%
-      gf_hline(yintercept = ~lw2, col = "indianred3", lty = 2) %>%
-      gf_hline(yintercept = ~up2, col = "indianred3", lty = 2)
+    ) |>
+      ggformula::gf_hline(yintercept = ~ mean(Ratio), col = "indianred3") |>
+      ggformula::gf_hline(yintercept = ~lw2, col = "indianred3", lty = 2) |>
+      ggformula::gf_hline(yintercept = ~up2, col = "indianred3", lty = 2)
   } else {
-    gf_point(Difference ~ Average,
+    ggformula::gf_point(Difference ~ Average,
       data = df, pch = pch,
       size = size, col = col, ...
-    ) %>%
-      gf_hline(yintercept = ~ mean(Difference), col = "indianred3") %>%
-      gf_hline(yintercept = ~lw1, col = "indianred3", lty = 2) %>%
-      gf_hline(yintercept = ~up1, col = "indianred3", lty = 2)
+    ) |>
+      ggformula::gf_hline(yintercept = ~ mean(Difference), col = "indianred3") |>
+      ggformula::gf_hline(yintercept = ~lw1, col = "indianred3", lty = 2) |>
+      ggformula::gf_hline(yintercept = ~up1, col = "indianred3", lty = 2)
   }
 }
 
 
 #' Construct box plots.
 #'
-#' \code{box_plot} is a wrap function that calls \link{gf_boxplot} to construct more aesthetic box plots.
+#' \code{box_plot} is a wrap function that calls \code{gf_boxplot} to construct more aesthetic box plots.
 #' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
 #' @param formula A formula with shape: \code{y ~ x} where \code{y} is a numerical variable and \code{x} is a factor.
 #' @param data A data frame where the variables in the \code{formula} can be found.
-#' @param fill Colour used for the box passed to \code{\link{gf_boxplot}}.
+#' @param fill Colour used for the box passed to \code{\link[ggformula]{gf_boxplot}}.
 #' @param alpha Opacity (0 = invisible, 1 = opaque).
 #' @param outlier.shape Shape (\code{pch}) used as symbol for the outliers.
 #' @param outlier.size Size of the outlier symbol.
-#' @param ... Further arguments passed to \code{\link{gf_boxplot}}.
+#' @param ... Further arguments passed to \code{\link[ggformula]{gf_boxplot}}.
 #' @examples
 #' data(kfm, package = "ISwR")
 #' require(sjlabelled, quietly = TRUE)
-#' kfm <- kfm %>%
+#' kfm <- kfm |>
 #'   var_labels(
 #'     dl.milk = "Breast-milk intake (dl/day)",
 #'     sex = "Sex",
@@ -299,13 +297,13 @@ bland_altman <- function(object = NULL, formula = NULL, data = NULL,
 #'     mat.height = "Maternal height (cm)"
 #'   )
 #'
-#' kfm %>%
+#' kfm |>
 #'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8)
 #'
 #' t.test(dl.milk ~ sex, data = kfm)
 #'
-#' kfm %>%
-#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) %>%
+#' kfm |>
+#'   box_plot(dl.milk ~ sex, fill = "thistle", alpha = 0.8) |>
 #'   gf_star(1, 10.9, 2, 11, 11.4, legend = "p = 0.035", size = 2.5)
 #' @export
 box_plot <- function(object = NULL, formula = NULL, data = NULL,
@@ -324,7 +322,7 @@ box_plot <- function(object = NULL, formula = NULL, data = NULL,
   x <- vars[2]
   outcome <- data[[y]]
   exposure <- data[[x]]
-  gf_boxplot(formula,
+  ggformula::gf_boxplot(formula,
     data = data, fill = fill, alpha = alpha,
     outlier.shape = outlier.shape,
     outlier.size = outlier.size, ...
@@ -338,14 +336,14 @@ box_plot <- function(object = NULL, formula = NULL, data = NULL,
 #' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
 #' @param formula A formula with shape: \code{ ~ x} or \code{ ~ x|z} where \code{x} is a numerical variable and \code{z} is a factor.
 #' @param data A data frame where the variables in the \code{formula} can be found.
-#' @param pch Point character passed to \link{gf_qq}.
-#' @param col Colour of the reference line, passed to \link{gf_line}.
+#' @param pch Point character passed to \code{\link[ggformula]{gf_qq}}.
+#' @param col Colour of the reference line, passed to \code{\link[ggformula]{gf_line}}.
 #' @param ylab Optional character passed as label for the y-axis.
-#' @param ... Further arguments passed to \link{gf_qq}.
+#' @param ... Further arguments passed to \code{\link[ggformula]{gf_qq}}.
 #' @examples
 #' data(kfm, package = "ISwR")
 #' require(sjlabelled, quietly = TRUE)
-#' kfm <- kfm %>%
+#' kfm <- kfm |>
 #'   var_labels(
 #'     dl.milk = "Breast-milk intake (dl/day)",
 #'     sex = "Sex",
@@ -355,7 +353,7 @@ box_plot <- function(object = NULL, formula = NULL, data = NULL,
 #'     mat.height = "Maternal height (cm)"
 #'   )
 #'
-#' kfm %>%
+#' kfm |>
 #'   qq_plot(~dl.milk)
 #'
 #' qq_plot(~ dl.milk | sex, data = kfm)
@@ -373,11 +371,11 @@ qq_plot <- function(object = NULL, formula = NULL, data = NULL, pch = 20,
   vars <- all.vars(formula)
   y <- vars[1]
   yl <- ifelse(is.null(ylab), y, ylab)
-  gf_qq(formula,
+  ggformula::gf_qq(formula,
     data = data, pch = pch, xlab = "Theoretical quantiles",
     ylab = yl, ...
-  ) %>%
-    gf_qqline(col = col, linetype = 1, lwd = 1)
+  ) |>
+    ggformula::gf_qqline(col = col, linetype = 1, lwd = 1)
 }
 
 #' Histogram with Normal density curve.
@@ -391,25 +389,25 @@ qq_plot <- function(object = NULL, formula = NULL, data = NULL, pch = 20,
 #' @param fill Colour to fill the bars of the histogram.
 #' @param color Colour used for the border of the bars.
 #' @param alpha Opacity (0 = invisible, 1 = opaque).
-#' @param ... Further arguments passed to \link{gf_dhistogram}.
+#' @param ... Further arguments passed to \code{\link[ggformula]{gf_dhistogram}}.
 #' @examples
 #' require(dplyr, quietly = TRUE)
 #' require(sjlabelled, quietly = TRUE)
 #' data(birthwt, package = "MASS")
-#' birthwt <- birthwt %>%
+#' birthwt <- birthwt |>
 #'   mutate(
 #'     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
 #'     Race = factor(race > 1, labels = c("White", "Non-white"))
-#'   ) %>%
+#'   ) |>
 #'   var_labels(
 #'     bwt = "Birth weight (g)",
 #'     smoke = "Smoking status"
 #'   )
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   hist_norm(~bwt, alpha = 0.7, bins = 20, fill = "cadetblue")
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   hist_norm(~ bwt | smoke, alpha = 0.7, bins = 20, fill = "cadetblue")
 #' @export
 hist_norm <- function(object = NULL, formula = NULL, data = NULL,
@@ -426,11 +424,11 @@ hist_norm <- function(object = NULL, formula = NULL, data = NULL,
   vars <- all.vars(formula)
   y <- vars[1]
   outcome <- data[[y]]
-  gf_dhistogram(formula,
+  ggformula::gf_dhistogram(formula,
     data = data, fill = fill, bins = bins,
     alpha = alpha, ylab = "Density", color = color, ...
-  ) %>%
-    gf_fitdistr(lwd = 0.7)
+  ) |>
+    ggformula::gf_fitdistr(lwd = 0.7)
 }
 #' Strip plots with error bars.
 #'
@@ -440,54 +438,52 @@ hist_norm <- function(object = NULL, formula = NULL, data = NULL,
 #' @param formula A formula with shape: \code{y ~ x} or \code{y ~ x|z} where \code{y} is a
 #' numerical variable and both \code{x} and \code{z} are factors.
 #' @param data A data frame where the variables in the \code{formula} can be found.
-#' @param pch Point character passed to \code{\link{gf_point}} or \code{\link{gf_jitter}}.
+#' @param pch Point character passed to \code{\link[ggformula]{gf_point}} or \code{\link[ggformula]{gf_jitter}}.
 #' @param size Size of the symbol (\code{pch}) for representing data values.
 #' @param alpha Opacity of the symbol (0 = invisible, 1 = opaque).
 #' @param col A colour or formula used for mapping colour.
-#' @param ... Additional information passed to \code{\link{gf_jitter}} or \code{\link{gf_point}}.
+#' @param ... Additional information passed to \code{\link[ggformula]{gf_jitter}} or \code{\link[ggformula]{gf_point}}.
 #' @examples
 #' data(energy, package = "ISwR")
 #' require(sjlabelled, quietly = TRUE)
-#' energy <- energy %>%
+#' energy <- energy |>
 #'   var_labels(
 #'     expend = "Energy expenditure (MJ/day)",
 #'     stature = "Stature"
 #'   )
 #'
-#' energy %>%
+#' energy |>
 #'   strip_error(expend ~ stature, col = "red")
 #'
 #' t.test(expend ~ stature, data = energy)
 #'
 #' ## Adding an horizontal line to show significant difference:
-#' energy %>%
-#'   strip_error(expend ~ stature, col = "red") %>%
+#' energy |>
+#'   strip_error(expend ~ stature, col = "red") |>
 #'   gf_star(1, 13, 2, 13.2, 13.4, "**")
 #'
 #' data(birthwt, package = "MASS")
 #' require(dplyr, quietly = TRUE)
-#' birthwt <- birthwt %>%
+#' birthwt <- birthwt |>
 #'   mutate(
 #'     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
 #'     Race = factor(race > 1, labels = c("White", "Non-white"))
-#'   ) %>%
+#'   ) |>
 #'   var_labels(
 #'     bwt = "Birth weight (g)",
 #'     smoke = "Smoking status"
 #'   )
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   strip_error(bwt ~ smoke | Race, col = "darksalmon")
 #'
-#' birthwt %>%
-#'   strip_error(bwt ~ smoke, col = ~Race) %>%
-#'   gf_refine(ggsci::scale_color_jama())
+#' birthwt |>
+#'   strip_error(bwt ~ smoke, col = ~Race)
 #'
-#' birthwt %>%
-#'   strip_error(bwt ~ smoke, pch = ~Race, col = ~Race) %>%
-#'   gf_refine(ggsci::scale_color_jama())
+#' birthwt |>
+#'   strip_error(bwt ~ smoke, pch = ~Race, col = ~Race)
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   strip_error(bwt ~ smoke | Race)
 #' @export
 strip_error <- function(object = NULL, formula = NULL, data = NULL,
@@ -501,21 +497,21 @@ strip_error <- function(object = NULL, formula = NULL, data = NULL,
     object <- NULL
   }
   if (is.character(col) & is.numeric(pch)) {
-    gf_jitter(formula,
+    ggformula::gf_jitter(formula,
       data = data, width = 0.1, height = 0, alpha = alpha,
       pch = pch, size = size, col = col, ...
-    ) %>%
-      gf_summary(fun.data = "mean_cl_boot", geom = "pointrange", fatten = 1)
+    ) |>
+      ggformula::gf_summary(fun.data = "mean_cl_boot", geom = "pointrange", fatten = 1)
   } else {
-    gf_point(formula,
+    ggformula::gf_point(formula,
       data = data, alpha = alpha,
       pch = pch, size = size, col = col,
       position = ggplot2::position_jitterdodge(
         dodge.width = 0.7,
         jitter.width = 0.1
       ), ...
-    ) %>%
-      gf_summary(
+    ) |>
+      ggformula::gf_summary(
         fun.data = "mean_cl_boot", geom = "pointrange", fatten = 1,
         position = ggplot2::position_dodge(width = 0.7)
       )
@@ -533,29 +529,29 @@ strip_error <- function(object = NULL, formula = NULL, data = NULL,
 #' @param fill Colour used to fill the bars.
 #' @param col Colour used for the borders of the bars.
 #' @param alpha Opacity of the colour fill (0 = invisible, 1 = opaque).
-#' @param ... Additional information passed to \code{\link{gf_summary}}.
+#' @param ... Additional information passed to \code{\link[ggformula]{gf_summary}}.
 #' @examples
 #' require(dplyr, quietly = TRUE)
 #' require(sjlabelled, quietly = TRUE)
 #' data(birthwt, package = "MASS")
 #'
-#' birthwt <- birthwt %>%
+#' birthwt <- birthwt |>
 #'   mutate(
 #'     smoke = factor(smoke, labels = c("Non-smoker", "Smoker")),
 #'     Race = factor(race > 1, labels = c("White", "Non-white"))
-#'   ) %>%
+#'   ) |>
 #'   var_labels(
 #'     bwt = "Birth weight (g)",
 #'     smoke = "Smoking status"
 #'   )
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   bar_error(bwt ~ smoke, fill = "plum3")
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   bar_error(bwt ~ smoke | Race, fill = "plum3")
 #'
-#' birthwt %>%
+#' birthwt |>
 #'   bar_error(bwt ~ smoke, fill = ~Race)
 #' @export
 bar_error <- function(object = NULL, formula = NULL, data = NULL,
@@ -569,17 +565,17 @@ bar_error <- function(object = NULL, formula = NULL, data = NULL,
     object <- NULL
   }
   if (is.character(fill) & is.character(col)) {
-    gf_summary(formula,
+    ggformula::gf_summary(formula,
       fun = "mean", data = data, geom = "bar",
       fill = fill, alpha = alpha, col = col, ...
-    ) %>%
-      gf_summary(fun.data = "mean_cl_boot", geom = "errorbar", width = 0.3)
+    ) |>
+      ggformula::gf_summary(fun.data = "mean_cl_boot", geom = "errorbar", width = 0.3)
   } else {
-    gf_summary(formula,
+    ggformula::gf_summary(formula,
       data = data, fill = fill, fun = "mean", geom = "bar",
       alpha = alpha, col = col, position = ggplot2::position_dodge(), ...
-    ) %>%
-      gf_summary(
+    ) |>
+      ggformula::gf_summary(
         fun.data = "mean_cl_boot", geom = "errorbar", width = 0.3,
         position = ggplot2::position_dodge(width = 1)
       )
@@ -600,7 +596,7 @@ bar_error <- function(object = NULL, formula = NULL, data = NULL,
 #' @examples
 #' data(kfm, package = "ISwR")
 #' require(sjlabelled, quietly = TRUE)
-#' kfm <- kfm %>%
+#' kfm <- kfm |>
 #'   var_labels(
 #'     dl.milk = "Breast-milk intake (dl/day)",
 #'     sex = "Sex",
@@ -610,7 +606,7 @@ bar_error <- function(object = NULL, formula = NULL, data = NULL,
 #'     mat.height = "Maternal height (cm)"
 #'   )
 #'
-#' kfm %>%
+#' kfm |>
 #'   gen_bst_df(dl.milk ~ sex)
 #'
 #' data(birthwt, package = "MASS")
@@ -620,7 +616,7 @@ bar_error <- function(object = NULL, formula = NULL, data = NULL,
 #'   Race = factor(race > 1, labels = c("White", "Non-white"))
 #' )
 #'
-#' birthwt <- birthwt %>%
+#' birthwt <- birthwt |>
 #'   var_labels(
 #'     bwt = "Birth weight (g)",
 #'     smoke = "Smoking status"

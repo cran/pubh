@@ -44,7 +44,6 @@ expand_df <- function(aggregate.data, index.var = "Freq", retain.freq = FALSE) {
 #' \code{mhor} computes odds ratios by levels of the stratum variable as well as the Mantel-Haenszel
 #' pooled odds ratio. The test for effect modification (test for interaction) is also displayed.
 #'
-#' @seealso \link{mh}
 #' @param object When chaining, this holds an object produced in the earlier portions of the chain. Most users can safely ignore this argument. See details and examples.
 #' @param formula A formula with shape: outcome ~ stratum/exposure.
 #' @param data A data frame containing the variables used in \code{formula}.
@@ -55,25 +54,25 @@ expand_df <- function(aggregate.data, index.var = "Freq", retain.freq = FALSE) {
 #' data(oswego, package = "epitools")
 #' require(dplyr, quietly = TRUE)
 #' require(sjlabelled, quietly = TRUE)
-#' oswego <- oswego %>%
+#' oswego <- oswego |>
 #'   mutate(
 #'     ill = factor(ill, labels = c("No", "Yes")),
 #'     sex = factor(sex, labels = c("Female", "Male")),
 #'     chocolate.ice.cream = factor(chocolate.ice.cream, labels = c("No", "Yes"))
-#'   ) %>%
+#'   ) |>
 #'   var_labels(
 #'     ill = "Developed illness",
 #'     sex = "Sex",
 #'     chocolate.ice.cream = "Consumed chocolate ice cream"
 #'   )
 #'
-#' oswego %>%
-#'   select(ill, sex, chocolate.ice.cream) %>%
-#'   tbl_summary() %>%
-#'   cosm_sum() %>%
+#' oswego |>
+#'   select(ill, sex, chocolate.ice.cream) |>
+#'   tbl_summary() |>
+#'   cosm_sum() |>
 #'   theme_pubh()
 #'
-#' oswego %>%
+#' oswego |>
 #'   mhor(ill ~ sex / chocolate.ice.cream)
 #' @export
 mhor <- function(object = NULL, formula = NULL, data = NULL) {
@@ -202,9 +201,9 @@ odds_trend <- function(formula, data, angle = 45,
   or.df <- data.frame(or.df, row.names = NULL)
   df <- or.df
   df2 <- df[-1, ]
-  fig <- df2 %>%
-    gf_pointrange(OR + lower + upper ~ Exposure) %>%
-    gf_labs(x = get_label(exposure)) %>%
+  fig <- df2 |>
+    gf_pointrange(OR + lower + upper ~ Exposure) |>
+    gf_labs(x = get_label(exposure)) |>
     gf_theme(axis.text.x = ggplot2::element_text(angle = angle, hjust = hjust))
   res <- list(df = df, fig = fig)
   res
@@ -229,7 +228,7 @@ odds_trend <- function(formula, data, angle = 45,
 #' tb <- data.frame(Freq, BCG, Xray)
 #' tb <- expand_df(tb)
 #'
-#' tb %>%
+#' tb |>
 #'   diag_test(BCG ~ Xray)
 #' @export
 diag_test <- function(object = NULL, formula = NULL, data = NULL, ...) {
@@ -300,12 +299,12 @@ diag_test2 <- function(aa, bb, cc, dd) {
 #' data(Oncho)
 #' require(dplyr, quietly = TRUE)
 #'
-#' Oncho %>%
-#'   select(mf, area) %>%
-#'   cross_tbl(by = "mf") %>%
+#' Oncho |>
+#'   select(mf, area) |>
+#'   cross_tbl(by = "mf") |>
 #'   theme_pubh(2)
 #'
-#' Oncho %>%
+#' Oncho |>
 #'   contingency(mf ~ area)
 #' @export
 contingency <- function(object = NULL, formula = NULL, data = NULL, method = "cohort.count", ...) {
